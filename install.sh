@@ -90,7 +90,7 @@ echo
 # ask user to enable timer
 # ---------------------------------------------------------
 
-read -p "Enable automatic updates via systemd timer? (y/N): " ENABLE_TIMER
+read -r -p "Enable automatic updates via systemd timer? (y/N): " ENABLE_TIMER
 
 if [[ "$ENABLE_TIMER" =~ ^[Yy]$ ]]; then
 
