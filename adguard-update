@@ -4,6 +4,14 @@ set -euo pipefail
 # =========================================================
 # Foxly AdGuard Home Updater
 # Safe updater for bare metal installations
+#
+# Features:
+# - version detection
+# - SHA256 verification
+# - rollback protection
+# - dry-run mode
+# - lockfile protection
+# - DNS health check
 # =========================================================
 
 INSTALL_DIR="/opt/AdGuardHome"
@@ -18,7 +26,7 @@ DRY_RUN=false
 FORCE=false
 
 # ---------------------------------------------------------
-# arguments
+# argument parsing
 # ---------------------------------------------------------
 
 for arg in "$@"; do
@@ -29,23 +37,29 @@ for arg in "$@"; do
 done
 
 # ---------------------------------------------------------
-# logging
+# logging helper
 # ---------------------------------------------------------
 
 log() {
     echo "$(date '+%F %T') - $1" | tee -a "$LOGFILE"
 }
 
+# ---------------------------------------------------------
+# command wrapper
+#
+# Executes a command normally or prints it in dry-run mode.
+# ---------------------------------------------------------
+
 run() {
     if $DRY_RUN; then
         log "[DRY-RUN] $*"
     else
-        eval "$@"
+        "$@"
     fi
 }
 
 # ---------------------------------------------------------
-# lockfile
+# lockfile protection
 # ---------------------------------------------------------
 
 if [[ -f "$LOCKFILE" ]]; then
@@ -80,7 +94,7 @@ esac
 log "Architecture detected: $ARCH"
 
 # ---------------------------------------------------------
-# installed version
+# detect installed version
 # ---------------------------------------------------------
 
 CURRENT_VERSION=$("$INSTALL_DIR/AdGuardHome" --version | awk '{print $4}' | sed 's/v//')
@@ -88,10 +102,10 @@ CURRENT_VERSION=$("$INSTALL_DIR/AdGuardHome" --version | awk '{print $4}' | sed 
 log "Installed version: $CURRENT_VERSION"
 
 # ---------------------------------------------------------
-# latest version
+# detect latest upstream version
 # ---------------------------------------------------------
 
-LATEST_VERSION=$(curl -s https://api.github.com/repos/$REPO/releases/latest \
+LATEST_VERSION=$(curl -s "https://api.github.com/repos/$REPO/releases/latest" \
 | grep tag_name | cut -d '"' -f4 | sed 's/v//')
 
 log "Latest version: $LATEST_VERSION"
@@ -107,21 +121,28 @@ log "Update required"
 # prepare workspace
 # ---------------------------------------------------------
 
-run "rm -rf $TMP_DIR"
-run "mkdir -p $TMP_DIR"
-run "cd $TMP_DIR"
+run rm -rf "$TMP_DIR"
+run mkdir -p "$TMP_DIR"
+
+cd "$TMP_DIR"
 
 ARCHIVE="AdGuardHome_linux_${ARCH}.tar.gz"
 DOWNLOAD_URL="$BASE_URL/$ARCHIVE"
 CHECKSUM_URL="${DOWNLOAD_URL}.sha256"
 
 # ---------------------------------------------------------
-# download release
+# download release archive
 # ---------------------------------------------------------
 
 log "Downloading release"
 
-run "curl --fail --location --silent --show-error -o adguard.tar.gz $DOWNLOAD_URL"
+run curl \
+    --fail \
+    --location \
+    --silent \
+    --show-error \
+    -o adguard.tar.gz \
+    "$DOWNLOAD_URL"
 
 # ---------------------------------------------------------
 # download checksum
@@ -129,7 +150,13 @@ run "curl --fail --location --silent --show-error -o adguard.tar.gz $DOWNLOAD_UR
 
 log "Downloading checksum"
 
-run "curl --fail --location --silent --show-error -o adguard.sha256 $CHECKSUM_URL"
+run curl \
+    --fail \
+    --location \
+    --silent \
+    --show-error \
+    -o adguard.sha256 \
+    "$CHECKSUM_URL"
 
 # ---------------------------------------------------------
 # verify checksum
@@ -157,7 +184,7 @@ fi
 # extract archive
 # ---------------------------------------------------------
 
-run "tar xzf adguard.tar.gz"
+run tar xzf adguard.tar.gz
 
 NEW_BINARY="$TMP_DIR/AdGuardHome/AdGuardHome"
 
@@ -171,20 +198,20 @@ else
 fi
 
 # ---------------------------------------------------------
-# stop service
+# stop AdGuard Home service
 # ---------------------------------------------------------
 
 log "Stopping AdGuard Home"
 
-run "systemctl stop AdGuardHome"
+run systemctl stop AdGuardHome
 
 # ---------------------------------------------------------
-# backup binary
+# backup current binary
 # ---------------------------------------------------------
 
 log "Creating binary backup"
 
-run "cp $INSTALL_DIR/AdGuardHome $INSTALL_DIR/AdGuardHome.backup"
+run cp "$INSTALL_DIR/AdGuardHome" "$INSTALL_DIR/AdGuardHome.backup"
 
 # ---------------------------------------------------------
 # install new binary
@@ -192,8 +219,8 @@ run "cp $INSTALL_DIR/AdGuardHome $INSTALL_DIR/AdGuardHome.backup"
 
 log "Installing new binary"
 
-run "cp $NEW_BINARY $INSTALL_DIR/AdGuardHome"
-run "chmod +x $INSTALL_DIR/AdGuardHome"
+run cp "$NEW_BINARY" "$INSTALL_DIR/AdGuardHome"
+run chmod +x "$INSTALL_DIR/AdGuardHome"
 
 # ---------------------------------------------------------
 # start service
@@ -201,12 +228,12 @@ run "chmod +x $INSTALL_DIR/AdGuardHome"
 
 log "Starting service"
 
-run "systemctl start AdGuardHome"
+run systemctl start AdGuardHome
 
 sleep 3
 
 # ---------------------------------------------------------
-# verify service
+# verify service health
 # ---------------------------------------------------------
 
 if $DRY_RUN; then
@@ -233,6 +260,6 @@ fi
 # cleanup
 # ---------------------------------------------------------
 
-run "rm -rf $TMP_DIR"
+run rm -rf "$TMP_DIR"
 
 log "Update finished"
