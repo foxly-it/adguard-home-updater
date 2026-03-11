@@ -1,0 +1,238 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# =========================================================
+# Foxly AdGuard Home Updater
+# Safe updater for bare metal installations
+# =========================================================
+
+INSTALL_DIR="/opt/AdGuardHome"
+TMP_DIR="/tmp/adguard-update"
+LOGFILE="/var/log/adguard-update.log"
+LOCKFILE="/var/run/adguard-update.lock"
+
+REPO="AdguardTeam/AdGuardHome"
+BASE_URL="https://static.adguard.com/adguardhome/release"
+
+DRY_RUN=false
+FORCE=false
+
+# ---------------------------------------------------------
+# arguments
+# ---------------------------------------------------------
+
+for arg in "$@"; do
+    case "$arg" in
+        --dry-run) DRY_RUN=true ;;
+        --force) FORCE=true ;;
+    esac
+done
+
+# ---------------------------------------------------------
+# logging
+# ---------------------------------------------------------
+
+log() {
+    echo "$(date '+%F %T') - $1" | tee -a "$LOGFILE"
+}
+
+run() {
+    if $DRY_RUN; then
+        log "[DRY-RUN] $*"
+    else
+        eval "$@"
+    fi
+}
+
+# ---------------------------------------------------------
+# lockfile
+# ---------------------------------------------------------
+
+if [[ -f "$LOCKFILE" ]]; then
+    echo "Another update process is already running"
+    exit 1
+fi
+
+touch "$LOCKFILE"
+
+cleanup() {
+    rm -f "$LOCKFILE"
+}
+
+trap cleanup EXIT
+
+# ---------------------------------------------------------
+# detect architecture
+# ---------------------------------------------------------
+
+ARCH=$(uname -m)
+
+case "$ARCH" in
+    aarch64) ARCH="arm64" ;;
+    arm64) ARCH="arm64" ;;
+    x86_64) ARCH="amd64" ;;
+    *)
+        log "Unsupported architecture: $ARCH"
+        exit 1
+        ;;
+esac
+
+log "Architecture detected: $ARCH"
+
+# ---------------------------------------------------------
+# installed version
+# ---------------------------------------------------------
+
+CURRENT_VERSION=$("$INSTALL_DIR/AdGuardHome" --version | awk '{print $4}' | sed 's/v//')
+
+log "Installed version: $CURRENT_VERSION"
+
+# ---------------------------------------------------------
+# latest version
+# ---------------------------------------------------------
+
+LATEST_VERSION=$(curl -s https://api.github.com/repos/$REPO/releases/latest \
+| grep tag_name | cut -d '"' -f4 | sed 's/v//')
+
+log "Latest version: $LATEST_VERSION"
+
+if [[ "$CURRENT_VERSION" == "$LATEST_VERSION" && "$FORCE" = false ]]; then
+    log "Already up to date"
+    exit 0
+fi
+
+log "Update required"
+
+# ---------------------------------------------------------
+# prepare workspace
+# ---------------------------------------------------------
+
+run "rm -rf $TMP_DIR"
+run "mkdir -p $TMP_DIR"
+run "cd $TMP_DIR"
+
+ARCHIVE="AdGuardHome_linux_${ARCH}.tar.gz"
+DOWNLOAD_URL="$BASE_URL/$ARCHIVE"
+CHECKSUM_URL="${DOWNLOAD_URL}.sha256"
+
+# ---------------------------------------------------------
+# download release
+# ---------------------------------------------------------
+
+log "Downloading release"
+
+run "curl --fail --location --silent --show-error -o adguard.tar.gz $DOWNLOAD_URL"
+
+# ---------------------------------------------------------
+# download checksum
+# ---------------------------------------------------------
+
+log "Downloading checksum"
+
+run "curl --fail --location --silent --show-error -o adguard.sha256 $CHECKSUM_URL"
+
+# ---------------------------------------------------------
+# verify checksum
+# ---------------------------------------------------------
+
+if ! $DRY_RUN; then
+
+    EXPECTED_HASH=$(awk '{print $1}' adguard.sha256)
+    ACTUAL_HASH=$(sha256sum adguard.tar.gz | awk '{print $1}')
+
+    log "Verifying SHA256 checksum"
+
+    if [[ "$EXPECTED_HASH" != "$ACTUAL_HASH" ]]; then
+        log "Checksum verification FAILED"
+        exit 1
+    fi
+
+    log "Checksum verification successful"
+
+else
+    log "[DRY-RUN] Checksum verification skipped"
+fi
+
+# ---------------------------------------------------------
+# extract archive
+# ---------------------------------------------------------
+
+run "tar xzf adguard.tar.gz"
+
+NEW_BINARY="$TMP_DIR/AdGuardHome/AdGuardHome"
+
+if ! $DRY_RUN; then
+    if [[ ! -f "$NEW_BINARY" ]]; then
+        log "Binary not found in archive"
+        exit 1
+    fi
+else
+    log "[DRY-RUN] Binary verification skipped"
+fi
+
+# ---------------------------------------------------------
+# stop service
+# ---------------------------------------------------------
+
+log "Stopping AdGuard Home"
+
+run "systemctl stop AdGuardHome"
+
+# ---------------------------------------------------------
+# backup binary
+# ---------------------------------------------------------
+
+log "Creating binary backup"
+
+run "cp $INSTALL_DIR/AdGuardHome $INSTALL_DIR/AdGuardHome.backup"
+
+# ---------------------------------------------------------
+# install new binary
+# ---------------------------------------------------------
+
+log "Installing new binary"
+
+run "cp $NEW_BINARY $INSTALL_DIR/AdGuardHome"
+run "chmod +x $INSTALL_DIR/AdGuardHome"
+
+# ---------------------------------------------------------
+# start service
+# ---------------------------------------------------------
+
+log "Starting service"
+
+run "systemctl start AdGuardHome"
+
+sleep 3
+
+# ---------------------------------------------------------
+# verify service
+# ---------------------------------------------------------
+
+if $DRY_RUN; then
+
+    log "Dry run completed"
+
+else
+
+    if systemctl is-active --quiet AdGuardHome && ss -lntu | grep -q ':53 '; then
+        log "Update successful"
+    else
+        log "Service health check failed — rolling back"
+
+        cp "$INSTALL_DIR/AdGuardHome.backup" "$INSTALL_DIR/AdGuardHome"
+        systemctl start AdGuardHome
+
+        log "Rollback completed"
+        exit 1
+    fi
+
+fi
+
+# ---------------------------------------------------------
+# cleanup
+# ---------------------------------------------------------
+
+run "rm -rf $TMP_DIR"
+
+log "Update finished"
