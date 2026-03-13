@@ -5,29 +5,26 @@
 # AdGuard Home Bare-Metal Updater
 
 ![Release](https://img.shields.io/github/v/release/foxly-it/adguard-home-updater)
+![Downloads](https://img.shields.io/github/downloads/foxly-it/adguard-home-updater/total)
 ![Shell](https://img.shields.io/badge/script-bash-green)
 ![Platform](https://img.shields.io/badge/platform-linux-blue)
 ![Arch](https://img.shields.io/badge/arch-amd64%20%7C%20arm64-informational)
-![AdGuard](https://img.shields.io/badge/AdGuard-Home-68BC71)
-![Systemd](https://img.shields.io/badge/automation-systemd-orange)
 ![License](https://img.shields.io/github/license/foxly-it/adguard-home-updater)
 
 Safe and automated updater for **AdGuard Home bare-metal installations**.
 
-This project provides a small but robust update utility for AdGuard Home when installed directly on a Linux host without Docker. It is designed for **homelab DNS infrastructure**, where reliability matters more than flashy features.
-
-The updater focuses on a safe workflow:
-
-- version check
-- secure download
-- SHA256 verification
-- binary backup
-- rollback on failure
-- optional automation via systemd timer
+This project provides a small but robust update utility for AdGuard Home when installed directly on a Linux host without Docker.  
+It is designed for **homelab DNS infrastructure**, where reliability matters more than flashy features.
 
 ---
 
 # Quick Install
+
+# CLI Preview
+
+<p align="center">
+<img src="assets/cli-demo.svg">
+</p>
 
 Install the updater with a **single command**:
 
@@ -40,6 +37,22 @@ The installer will:
 - install `adguard-update`
 - install systemd service
 - optionally enable automatic updates
+
+---
+
+# Quick Test (Dry-Run without installation)
+
+Run the updater **without installing it**:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/foxly-it/adguard-home-updater/main/adguard-update | sudo bash -s -- --dry-run
+```
+
+Check if an update is available:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/foxly-it/adguard-home-updater/main/adguard-update | sudo bash -s -- --check
+```
 
 ---
 
@@ -56,74 +69,10 @@ The installer will:
 | Check mode | Shows if update is available |
 | Force update | Reinstalls even if version matches |
 | Self update | Updates the updater itself |
+| DNS health check | Verifies port 53 and performs DNS query test |
 | Lockfile protection | Prevents concurrent runs |
 | Logging | Writes logs to `/var/log/adguard-update.log` |
 | systemd integration | Supports automated update checks |
-
----
-
-# Why this project exists
-
-AdGuard Home works extremely well as a **bare-metal DNS resolver**, especially on small ARM systems such as Raspberry Pi.
-
-However, updates are usually still performed manually.
-
-Typical manual workflow:
-
-```text
-download → extract → stop service → replace binary → start service
-```
-
-While simple, this is not ideal for infrastructure services such as DNS.
-
-This project converts the process into a **safe and repeatable workflow with safeguards**.
-
----
-
-# Requirements
-
-- Linux host
-- systemd
-- root privileges
-- internet access
-- AdGuard Home installed in:
-
-```text
-/opt/AdGuardHome
-```
-
-Required utilities:
-
-```text
-curl
-tar
-sha256sum
-systemctl
-```
-
----
-
-# Repository Structure
-
-```text
-adguard-home-updater
-│
-├─ adguard-update
-├─ install.sh
-├─ README.md
-├─ LICENSE
-├─ .gitignore
-│
-├─ docs
-│   └─ architecture.md
-│
-├─ assets
-│   └─ banner.png
-│
-└─ .github
-    └─ workflows
-        └─ release.yml
-```
 
 ---
 
@@ -145,7 +94,7 @@ adguard-update --check
 
 Example output:
 
-```text
+```
 Installed version:
   0.107.72
 
@@ -159,7 +108,7 @@ Status: update available
 
 ## Dry-run
 
-Simulate update workflow:
+Simulate the update workflow:
 
 ```bash
 sudo adguard-update --dry-run
@@ -195,7 +144,7 @@ sudo adguard-update --self-update
 
 The updater performs the following sequence:
 
-```text
+```
 Version Check
       ↓
 Download Release
@@ -214,7 +163,7 @@ Install New Binary
       ↓
 Start AdGuard Home
       ↓
-Health Check
+DNS Health Check
       ↓
 Rollback on Failure
 ```
@@ -223,38 +172,17 @@ This keeps the process simple, auditable, and safe for infrastructure services.
 
 ---
 
-# Downtime
-
-Typical DNS interruption during update:
-
-```text
-~300–500 ms
-```
-
-Most environments will not notice this due to DNS caching.
-
-For critical homelab setups a secondary resolver is recommended.
-
-Example:
-
-```text
-Primary DNS:   192.168.178.4
-Secondary DNS: 10.100.0.3
-```
-
----
-
 # Logging
 
 All activity is written to:
 
-```text
+```
 /var/log/adguard-update.log
 ```
 
-Example:
+Example log output:
 
-```text
+```
 2026-03-11 03:10:01 - Architecture detected: arm64
 2026-03-11 03:10:01 - Installed version: 0.107.72
 2026-03-11 03:10:01 - Latest version: 0.107.73
@@ -270,7 +198,7 @@ Example:
 
 The installer can automatically configure a **systemd timer**.
 
-Check timer:
+Check timer status:
 
 ```bash
 systemctl status adguard-update.timer
@@ -294,7 +222,7 @@ systemctl list-timers | grep adguard
 
 ### Lockfile
 
-```text
+```
 /var/run/adguard-update.lock
 ```
 
@@ -304,7 +232,7 @@ Prevents concurrent update runs.
 
 ### Binary backup
 
-```text
+```
 /opt/AdGuardHome/AdGuardHome.backup
 ```
 
@@ -318,7 +246,7 @@ If the service fails after update, the previous binary is restored automatically
 
 # Example Homelab Architecture
 
-```text
+```
 Clients
    ↓
 AdGuard Home
@@ -330,7 +258,7 @@ Internet DNS hierarchy
 
 Updater integration:
 
-```text
+```
 AdGuard Home
      │
      └── adguard-update
@@ -343,27 +271,28 @@ AdGuard Home
 
 ---
 
-# Security Notes
+# Requirements
 
-The updater downloads binaries from the **official AdGuard release source** and verifies the SHA256 checksum before installation.
+- Linux host
+- systemd
+- root privileges
+- internet access
 
-Recommended first run:
+AdGuard Home installed in:
 
-```bash
-sudo adguard-update --dry-run
+```
+/opt/AdGuardHome
 ```
 
----
+Required utilities:
 
-# Roadmap
-
-Possible future improvements:
-
-- cluster aware multi-DNS updates
-- AdGuard API health checks
-- notification hooks
-- release channel support
-- changelog integration
+```
+curl
+tar
+sha256sum
+systemctl
+ss
+```
 
 ---
 

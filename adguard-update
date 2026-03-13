@@ -3,17 +3,7 @@ set -euo pipefail
 
 # =========================================================
 # AdGuard Home Updater
-#
-# Safe updater for bare-metal installations
-#
-# Features
-# - version detection
-# - dry-run mode
-# - rollback protection
-# - self update
-# - status information
-# - checksum verification
-# - check-only mode
+# Foxly Infrastructure Tools
 # =========================================================
 
 VERSION="${VERSION:-dev}"
@@ -31,22 +21,59 @@ FORCE=false
 CHECK_ONLY=false
 
 # ---------------------------------------------------------
-# CLI header
+# Colors
+# ---------------------------------------------------------
+
+RED="\033[0;31m"
+GREEN="\033[0;32m"
+YELLOW="\033[1;33m"
+BLUE="\033[0;34m"
+NC="\033[0m"
+
+# ---------------------------------------------------------
+# Banner
 # ---------------------------------------------------------
 
 banner() {
-echo
-echo "AdGuard Home Updater v$VERSION"
-echo "--------------------------------"
-echo
+
+cat << "EOF"
+
+ █████╗ ██████╗  ██████╗ ██╗   ██╗ █████╗ ██████╗ ██████╗
+██╔══██╗██╔══██╗██╔════╝ ██║   ██║██╔══██╗██╔══██╗██╔══██╗
+███████║██║  ██║██║  ███╗██║   ██║███████║██████╔╝██║  ██║
+██╔══██║██║  ██║██║   ██║██║   ██║██╔══██║██╔══██╗██║  ██║
+██║  ██║██████╔╝╚██████╔╝╚██████╔╝██║  ██║██║  ██║██████╔╝
+╚═╝  ╚═╝╚═════╝  ╚═════╝  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝
+
+     AdGuard Home Updater
+     Foxly Infrastructure Tools
+
+EOF
+
 }
 
 # ---------------------------------------------------------
-# logging
+# Logging
 # ---------------------------------------------------------
 
 log() {
 echo "$(date '+%F %T') - $1" | tee -a "$LOGFILE"
+}
+
+info() {
+echo -e "${BLUE}[INFO]${NC} $1"
+}
+
+success() {
+echo -e "${GREEN}[OK]${NC} $1"
+}
+
+warn() {
+echo -e "${YELLOW}[WARN]${NC} $1"
+}
+
+error() {
+echo -e "${RED}[ERROR]${NC} $1"
 }
 
 # ---------------------------------------------------------
@@ -54,69 +81,87 @@ echo "$(date '+%F %T') - $1" | tee -a "$LOGFILE"
 # ---------------------------------------------------------
 
 run() {
+
 if $DRY_RUN; then
-log "[DRY-RUN] $*"
+warn "[DRY-RUN] $*"
 else
 "$@"
 fi
+
 }
 
 # ---------------------------------------------------------
-# self update
+# DNS Health Check
+# ---------------------------------------------------------
+
+dns_health_check() {
+
+info "Running DNS health check"
+
+if ! ss -lntup | grep -q ":53"; then
+error "DNS port 53 not listening"
+return 1
+fi
+
+if command -v dig >/dev/null 2>&1; then
+
+if ! dig @127.0.0.1 google.com +short >/dev/null 2>&1; then
+error "DNS query test failed"
+return 1
+fi
+
+fi
+
+success "DNS health check successful"
+
+}
+
+# ---------------------------------------------------------
+# Self Update
 # ---------------------------------------------------------
 
 self_update() {
 
-log "Checking for updater updates..."
+info "Checking for updater updates"
 
 LATEST=$(curl --fail --silent --show-error \
 https://api.github.com/repos/$REPO/releases/latest \
 | grep '"tag_name"' \
 | cut -d '"' -f4)
 
-if [[ -z "$LATEST" ]]; then
-log "Failed to detect latest updater version"
-exit 1
-fi
-
 if [[ "v$VERSION" == "$LATEST" ]]; then
-log "Updater already up to date ($VERSION)"
+success "Updater already up to date"
 exit 0
 fi
 
-log "Updating updater to $LATEST"
-
-DOWNLOAD_URL="https://github.com/$REPO/releases/latest/download/adguard-update"
+info "Updating updater to $LATEST"
 
 TMP_FILE="/tmp/adguard-update.new"
 
 curl --fail --location --silent --show-error \
 -o "$TMP_FILE" \
-"$DOWNLOAD_URL"
+"https://github.com/$REPO/releases/latest/download/adguard-update"
 
 install -m 0755 "$TMP_FILE" /usr/local/sbin/adguard-update
 
-log "Updater successfully updated to $LATEST"
+success "Updater updated successfully"
+
 }
 
 # ---------------------------------------------------------
-# status info
+# Status
 # ---------------------------------------------------------
 
 show_status() {
 
 banner
 
-echo "Updater version:"
-echo "  $VERSION"
-echo
+echo "Updater version: $VERSION"
 
 if [[ -f "$INSTALL_DIR/AdGuardHome" ]]; then
 
 AGH_VERSION=$("$INSTALL_DIR/AdGuardHome" --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
-
-echo "AdGuard Home version:"
-echo "  $AGH_VERSION"
+echo "AdGuard Home version: $AGH_VERSION"
 
 else
 
@@ -127,16 +172,15 @@ fi
 echo
 
 if systemctl is-active --quiet AdGuardHome; then
-echo "Service status: active"
+success "Service running"
 else
-echo "Service status: inactive"
+error "Service not running"
 fi
 
-echo
 }
 
 # ---------------------------------------------------------
-# argument parsing
+# Argument parsing
 # ---------------------------------------------------------
 
 for arg in "$@"; do
@@ -177,13 +221,13 @@ echo "Usage:"
 echo "  adguard-update [OPTIONS]"
 echo
 echo "Options:"
-echo "  --check         check for updates only"
+echo "  --check         check for updates"
 echo "  --dry-run       simulate update"
 echo "  --force         force update"
-echo "  --self-update   update the updater itself"
-echo "  --status        show status information"
-echo "  --version       show updater version"
-echo "  --help          show this help"
+echo "  --self-update   update updater"
+echo "  --status        show status"
+echo "  --version       show version"
+echo "  --help          show help"
 echo
 
 exit 0
@@ -192,25 +236,23 @@ exit 0
 esac
 done
 
+banner
+
 # ---------------------------------------------------------
-# lock protection
+# Lockfile
 # ---------------------------------------------------------
 
 exec 200>"$LOCKFILE"
 
 flock -n 200 || {
-log "Another update process is already running"
+error "Another update process is running"
 exit 1
 }
 
-cleanup() {
-rm -f "$LOCKFILE"
-}
-
-trap cleanup EXIT
+trap "rm -f $LOCKFILE" EXIT
 
 # ---------------------------------------------------------
-# architecture detection
+# Architecture
 # ---------------------------------------------------------
 
 ARCH=$(uname -m)
@@ -220,23 +262,23 @@ aarch64) ARCH="arm64" ;;
 arm64) ARCH="arm64" ;;
 x86_64) ARCH="amd64" ;;
 *)
-log "Unsupported architecture: $ARCH"
+error "Unsupported architecture: $ARCH"
 exit 1
 ;;
 esac
 
-log "Architecture detected: $ARCH"
+info "Architecture detected: $ARCH"
 
 # ---------------------------------------------------------
-# detect installed version
+# Installed version
 # ---------------------------------------------------------
 
 CURRENT_VERSION=$("$INSTALL_DIR/AdGuardHome" --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
 
-log "Installed version: $CURRENT_VERSION"
+info "Installed version: $CURRENT_VERSION"
 
 # ---------------------------------------------------------
-# detect latest version
+# Latest version
 # ---------------------------------------------------------
 
 LATEST_VERSION=$(curl --fail --silent --show-error \
@@ -245,48 +287,33 @@ https://api.github.com/repos/AdguardTeam/AdGuardHome/releases/latest \
 | cut -d '"' -f4 \
 | sed 's/v//')
 
-log "Latest version: $LATEST_VERSION"
-
-# ---------------------------------------------------------
-# check-only mode
-# ---------------------------------------------------------
+info "Latest version: $LATEST_VERSION"
 
 if $CHECK_ONLY; then
 
-banner
-
-echo "Installed version:"
-echo "  $CURRENT_VERSION"
-
-echo "Latest version:"
-echo "  $LATEST_VERSION"
-
 echo
+echo "Installed version: $CURRENT_VERSION"
+echo "Latest version: $LATEST_VERSION"
 
 if [[ "$CURRENT_VERSION" == "$LATEST_VERSION" ]]; then
-echo "Status: up to date"
+success "System up to date"
 else
-echo "Status: update available"
+warn "Update available"
 fi
 
-echo
 exit 0
 
 fi
-
-# ---------------------------------------------------------
-# update decision
-# ---------------------------------------------------------
 
 if [[ "$CURRENT_VERSION" == "$LATEST_VERSION" && "$FORCE" = false ]]; then
-log "Already up to date"
+success "Already up to date"
 exit 0
 fi
 
-log "Update required"
+info "Update required"
 
 # ---------------------------------------------------------
-# workspace
+# Workspace
 # ---------------------------------------------------------
 
 run rm -rf "$TMP_DIR"
@@ -295,96 +322,79 @@ run mkdir -p "$TMP_DIR"
 cd "$TMP_DIR"
 
 ARCHIVE="AdGuardHome_linux_${ARCH}.tar.gz"
-DOWNLOAD_URL="$BASE_URL/$ARCHIVE"
 
-log "Downloading release"
+info "Downloading release"
 
 run curl --fail --location --silent --show-error \
 -o adguard.tar.gz \
-"$DOWNLOAD_URL"
+"$BASE_URL/$ARCHIVE"
 
 run curl --fail --location --silent --show-error \
 -o checksums.txt \
 "$BASE_URL/AdGuardHome_checksums.txt"
 
-# ---------------------------------------------------------
-# checksum verification
-# ---------------------------------------------------------
-
-log "Verifying checksum"
-
 EXPECTED=$(grep "$ARCHIVE" checksums.txt | awk '{print $1}')
-
 DOWNLOADED=$(sha256sum adguard.tar.gz | awk '{print $1}')
 
 if [[ "$EXPECTED" != "$DOWNLOADED" ]]; then
-log "Checksum verification failed"
+error "Checksum verification failed"
 exit 1
 fi
 
-log "Checksum valid"
+success "Checksum valid"
 
 run tar xzf adguard.tar.gz
 
 NEW_BINARY="$TMP_DIR/AdGuardHome/AdGuardHome"
 
 # ---------------------------------------------------------
-# stop service
+# Stop service
 # ---------------------------------------------------------
 
-log "Stopping AdGuard Home"
+info "Stopping AdGuard Home"
 
 run systemctl stop AdGuardHome
 
 # ---------------------------------------------------------
-# backup binary
+# Backup
 # ---------------------------------------------------------
-
-log "Creating backup"
 
 run cp "$INSTALL_DIR/AdGuardHome" "$INSTALL_DIR/AdGuardHome.backup"
 
 # ---------------------------------------------------------
-# install new binary
+# Install
 # ---------------------------------------------------------
 
-log "Installing new binary"
+info "Installing new binary"
 
 run cp "$NEW_BINARY" "$INSTALL_DIR/AdGuardHome"
 run chmod +x "$INSTALL_DIR/AdGuardHome"
 
 # ---------------------------------------------------------
-# start service
+# Start service
 # ---------------------------------------------------------
-
-log "Starting service"
 
 run systemctl start AdGuardHome
 
 sleep 3
 
 # ---------------------------------------------------------
-# health check
+# Health check
 # ---------------------------------------------------------
 
 if $DRY_RUN; then
-
-log "Dry run completed"
-
+warn "Dry run completed"
 else
 
-if systemctl is-active --quiet AdGuardHome; then
-
-log "Update successful"
-
+if systemctl is-active --quiet AdGuardHome && dns_health_check; then
+success "Update successful"
 else
 
-log "Service failed - rolling back"
+error "Service failed — rolling back"
 
 cp "$INSTALL_DIR/AdGuardHome.backup" "$INSTALL_DIR/AdGuardHome"
 systemctl start AdGuardHome
 
-log "Rollback completed"
 exit 1
 
 fi
@@ -393,4 +403,4 @@ fi
 
 run rm -rf "$TMP_DIR"
 
-log "Update finished"
+success "Update finished"
