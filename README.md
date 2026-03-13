@@ -4,12 +4,13 @@
 
 # AdGuard Home Bare-Metal Updater
 
+![Release](https://img.shields.io/github/v/release/foxly-it/adguard-home-updater)
 ![Shell](https://img.shields.io/badge/script-bash-green)
 ![Platform](https://img.shields.io/badge/platform-linux-blue)
 ![Arch](https://img.shields.io/badge/arch-amd64%20%7C%20arm64-informational)
 ![AdGuard](https://img.shields.io/badge/AdGuard-Home-68BC71)
 ![Systemd](https://img.shields.io/badge/automation-systemd-orange)
-![License](https://img.shields.io/badge/license-MIT-blue)
+![License](https://img.shields.io/github/license/foxly-it/adguard-home-updater)
 
 Safe and automated updater for **AdGuard Home bare-metal installations**.
 
@@ -26,70 +27,83 @@ The updater focuses on a safe workflow:
 
 ---
 
-## Why this project exists
+# Quick Install
 
-AdGuard Home works very well as a bare-metal DNS service, especially on small ARM systems like Raspberry Pi.  
-However, binary updates are often still handled manually.
+Install the updater with a **single command**:
 
-A typical manual update process usually looks like this:
-
-```text
-download → extract → stop service → replace binary → start service
+```bash
+curl -fsSL https://raw.githubusercontent.com/foxly-it/adguard-home-updater/main/install.sh | sudo bash
 ```
 
-That works, but it is not ideal for infrastructure services such as DNS.
+The installer will:
 
-This project turns that process into a safer and repeatable workflow with proper safeguards.
+- install `adguard-update`
+- install systemd service
+- optionally enable automatic updates
 
 ---
 
-## Features
+# Features
 
 | Feature | Description |
 |---|---|
 | Architecture detection | Supports `amd64` and `arm64` |
 | Automatic version check | Compares installed version with latest upstream release |
-| Secure download | Verifies the official SHA256 checksum |
-| Binary backup | Keeps a backup of the previous binary |
-| Rollback protection | Restores the old binary if the service fails after update |
-| Dry-run mode | Simulates the full workflow without changing the system |
-| Force update | Reinstalls even if the version is already current |
-| Lockfile protection | Prevents concurrent update runs |
-| Logging | Writes update logs to `/var/log/adguard-update.log` |
-| systemd integration | Supports automated update checks via timer |
+| Secure download | Verifies official SHA256 checksum |
+| Binary backup | Keeps previous binary |
+| Rollback protection | Restores old binary if service fails |
+| Dry-run mode | Simulates full update workflow |
+| Check mode | Shows if update is available |
+| Force update | Reinstalls even if version matches |
+| Self update | Updates the updater itself |
+| Lockfile protection | Prevents concurrent runs |
+| Logging | Writes logs to `/var/log/adguard-update.log` |
+| systemd integration | Supports automated update checks |
 
 ---
 
-## Intended use case
+# Why this project exists
 
-This project is intended for:
+AdGuard Home works extremely well as a **bare-metal DNS resolver**, especially on small ARM systems such as Raspberry Pi.
 
-- AdGuard Home bare-metal installations
-- Raspberry Pi based DNS resolvers
-- homelab infrastructure
-- small Linux servers with systemd
-- setups where Docker is not used for AdGuard Home
+However, updates are usually still performed manually.
 
-This project is **not** intended to replace package-manager based installations.
+Typical manual workflow:
+
+```text
+download → extract → stop service → replace binary → start service
+```
+
+While simple, this is not ideal for infrastructure services such as DNS.
+
+This project converts the process into a **safe and repeatable workflow with safeguards**.
 
 ---
 
-## Requirements
+# Requirements
 
-- Linux host with `systemd`
+- Linux host
+- systemd
+- root privileges
+- internet access
 - AdGuard Home installed in:
 
 ```text
 /opt/AdGuardHome
 ```
 
-- root privileges
-- internet access
-- `curl`, `tar`, `sha256sum`, `systemctl`, `ss`
+Required utilities:
+
+```text
+curl
+tar
+sha256sum
+systemctl
+```
 
 ---
 
-## Repository structure
+# Repository Structure
 
 ```text
 adguard-home-updater
@@ -103,6 +117,9 @@ adguard-home-updater
 ├─ docs
 │   └─ architecture.md
 │
+├─ assets
+│   └─ banner.png
+│
 └─ .github
     └─ workflows
         └─ release.yml
@@ -110,62 +127,55 @@ adguard-home-updater
 
 ---
 
-## Quick install
+# Usage
 
-Install the updater script, the systemd service, and the timer:
+## Status
 
 ```bash
-curl -s https://raw.githubusercontent.com/foxly-it/adguard-home-updater/main/install.sh | sudo bash
+adguard-update --status
 ```
-
-The installer will ask whether automatic updates should be enabled immediately.
 
 ---
 
-## Manual installation
-
-Move the updater to the standard admin tools location:
+## Check for update
 
 ```bash
-sudo mv adguard-update /usr/local/sbin/
-sudo chmod +x /usr/local/sbin/adguard-update
+adguard-update --check
 ```
 
-Verify installation:
-
-```bash
-which adguard-update
-```
-
-Expected output:
+Example output:
 
 ```text
-/usr/local/sbin/adguard-update
+Installed version:
+  0.107.72
+
+Latest version:
+  0.107.73
+
+Status: update available
 ```
 
 ---
 
-## Usage
+## Dry-run
 
-### Dry-run
-
-Simulate the update workflow without changing the system:
+Simulate update workflow:
 
 ```bash
 sudo adguard-update --dry-run
 ```
 
-### Normal update
+---
 
-Run the updater normally:
+## Normal update
 
 ```bash
 sudo adguard-update
 ```
 
-### Force update
+---
 
-Force reinstall even when the installed version already matches the latest upstream version:
+## Force update
 
 ```bash
 sudo adguard-update --force
@@ -173,9 +183,17 @@ sudo adguard-update --force
 
 ---
 
-## Update workflow
+## Update the updater
 
-The updater uses the following sequence:
+```bash
+sudo adguard-update --self-update
+```
+
+---
+
+# Update Workflow
+
+The updater performs the following sequence:
 
 ```text
 Version Check
@@ -196,7 +214,7 @@ Install New Binary
       ↓
 Start AdGuard Home
       ↓
-DNS Health Check
+Health Check
       ↓
 Rollback on Failure
 ```
@@ -205,17 +223,17 @@ This keeps the process simple, auditable, and safe for infrastructure services.
 
 ---
 
-## Downtime
+# Downtime
 
-Typical DNS interruption during an update is very small:
+Typical DNS interruption during update:
 
 ```text
 ~300–500 ms
 ```
 
-In most environments this is hidden by DNS caching and retry behavior.
+Most environments will not notice this due to DNS caching.
 
-For production-style homelabs, running a second DNS server is still recommended.
+For critical homelab setups a secondary resolver is recommended.
 
 Example:
 
@@ -226,131 +244,79 @@ Secondary DNS: 10.100.0.3
 
 ---
 
-## Logging
+# Logging
 
-All updater activity is written to:
+All activity is written to:
 
 ```text
 /var/log/adguard-update.log
 ```
 
-Example log output:
+Example:
 
 ```text
 2026-03-11 03:10:01 - Architecture detected: arm64
 2026-03-11 03:10:01 - Installed version: 0.107.72
 2026-03-11 03:10:01 - Latest version: 0.107.73
 2026-03-11 03:10:02 - Downloading release
-2026-03-11 03:10:03 - Downloading checksum
-2026-03-11 03:10:03 - Verifying SHA256 checksum
-2026-03-11 03:10:03 - Installing new binary
-2026-03-11 03:10:04 - Update successful
+2026-03-11 03:10:03 - Verifying checksum
+2026-03-11 03:10:04 - Installing new binary
+2026-03-11 03:10:05 - Update successful
 ```
 
 ---
 
-## systemd automation
+# systemd Automation
 
-The project supports automated update checks through systemd.
+The installer can automatically configure a **systemd timer**.
 
-### Service file
-
-Create:
+Check timer:
 
 ```bash
-sudo nano /etc/systemd/system/adguard-update.service
+systemctl status adguard-update.timer
 ```
 
-```ini
-[Unit]
-Description=AdGuard Home Update Check
-Documentation=https://github.com/foxly-it/adguard-home-updater
-
-[Service]
-Type=oneshot
-ExecStart=/usr/local/sbin/adguard-update
-User=root
-```
-
-### Timer file
-
-Create:
+Manual run:
 
 ```bash
-sudo nano /etc/systemd/system/adguard-update.timer
+systemctl start adguard-update.service
 ```
 
-```ini
-[Unit]
-Description=Daily AdGuard Home Update Check
-
-[Timer]
-OnCalendar=daily
-Persistent=true
-RandomizedDelaySec=1h
-AccuracySec=10m
-
-[Install]
-WantedBy=timers.target
-```
-
-### Enable the timer
-
-```bash
-sudo systemctl daemon-reload
-sudo systemctl enable --now adguard-update.timer
-```
-
-Check timer status:
+List timers:
 
 ```bash
 systemctl list-timers | grep adguard
 ```
 
-Show logs:
-
-```bash
-journalctl -u adguard-update.service
-```
-
 ---
 
-## Safety mechanisms
+# Safety Mechanisms
 
 ### Lockfile
-
-A lockfile prevents concurrent execution:
 
 ```text
 /var/run/adguard-update.lock
 ```
 
-This protects against accidental parallel runs, for example from manual execution and a systemd timer at the same time.
+Prevents concurrent update runs.
+
+---
 
 ### Binary backup
-
-Before replacing the binary, the updater creates:
 
 ```text
 /opt/AdGuardHome/AdGuardHome.backup
 ```
 
+---
+
 ### Automatic rollback
 
-If the updated service fails to come back cleanly, the updater restores the previous binary automatically.
-
-### DNS health check
-
-After restart, the updater verifies:
-
-- that the AdGuard Home service is active
-- that DNS is listening on port `53`
-
-Only then is the update considered successful.
+If the service fails after update, the previous binary is restored automatically.
 
 ---
 
-## Example bare-metal setup
+# Example Homelab Architecture
 
 ```text
 Clients
@@ -377,11 +343,9 @@ AdGuard Home
 
 ---
 
-## Security notes
+# Security Notes
 
-This updater downloads binaries from the official AdGuard release location and verifies the published SHA256 checksum before installation.
-
-Even with that safeguard, infrastructure updates should still be tested in your own environment first.
+The updater downloads binaries from the **official AdGuard release source** and verifies the SHA256 checksum before installation.
 
 Recommended first run:
 
@@ -391,28 +355,25 @@ sudo adguard-update --dry-run
 
 ---
 
-## Roadmap
+# Roadmap
 
 Possible future improvements:
 
-- cluster-aware multi-DNS update orchestration
+- cluster aware multi-DNS updates
 - AdGuard API health checks
 - notification hooks
 - release channel support
-- auto-generated changelog support
-- install/uninstall helper improvements
+- changelog integration
 
 ---
 
-## License
+# License
 
-This project is licensed under the MIT License.
-
-See the [LICENSE](LICENSE) file for details.
+MIT License
 
 ---
 
-## Disclaimer
+# Disclaimer
 
 This project is **not affiliated with AdGuard**.
 
