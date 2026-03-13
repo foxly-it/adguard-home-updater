@@ -249,7 +249,7 @@ error "Another update process is running"
 exit 1
 }
 
-trap "rm -f $LOCKFILE" EXIT
+trap 'rm -f "$LOCKFILE"' EXIT
 
 # ---------------------------------------------------------
 # Architecture
