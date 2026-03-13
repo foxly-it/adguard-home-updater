@@ -1,3 +1,7 @@
+<p align="center">
+<img src="assets/banner.png" alt="AdGuard Home Updater">
+</p>
+
 # AdGuard Home Bare-Metal Updater
 
 ![Shell](https://img.shields.io/badge/script-bash-green)
