@@ -48,7 +48,7 @@ NC="\033[0m"
 # ---------------------------------------------------------
 
 banner() {
-cat << "EOF"
+    cat <<"EOF"
 
  █████╗ ██████╗  ██████╗ ██╗   ██╗ █████╗ ██████╗ ██████╗
 ██╔══██╗██╔══██╗██╔════╝ ██║   ██║██╔══██╗██╔══██╗██╔══██╗
@@ -68,23 +68,23 @@ EOF
 # ---------------------------------------------------------
 
 log() {
-echo "$(date '+%F %T') - $1" | tee -a "$LOGFILE"
+    echo "$(date '+%F %T') - $1" | tee -a "$LOGFILE"
 }
 
 info() {
-echo -e "${BLUE}[INFO]${NC} $1"
+    echo -e "${BLUE}[INFO]${NC} $1"
 }
 
 success() {
-echo -e "${GREEN}[OK]${NC} $1"
+    echo -e "${GREEN}[OK]${NC} $1"
 }
 
 warn() {
-echo -e "${YELLOW}[WARN]${NC} $1"
+    echo -e "${YELLOW}[WARN]${NC} $1"
 }
 
 error() {
-echo -e "${RED}[ERROR]${NC} $1"
+    echo -e "${RED}[ERROR]${NC} $1"
 }
 
 # ---------------------------------------------------------
@@ -93,29 +93,29 @@ echo -e "${RED}[ERROR]${NC} $1"
 
 progress() {
 
-local duration=$1
+    local duration=$1
 
-already_done() {
-    for ((done=0; done<elapsed; done++)); do
-        printf "█"
+    already_done() {
+        for ((done = 0; done < elapsed; done++)); do
+            printf "█"
+        done
+    }
+
+    remaining() {
+        for ((remain = elapsed; remain < duration; remain++)); do
+            printf "░"
+        done
+    }
+
+    for ((elapsed = 1; elapsed <= duration; elapsed++)); do
+        printf "\rProgress : ["
+        already_done
+        remaining
+        printf "] %s%%" $((elapsed * 100 / duration))
+        sleep 0.05
     done
-}
 
-remaining() {
-    for ((remain=elapsed; remain<duration; remain++)); do
-        printf "░"
-    done
-}
-
-for ((elapsed=1; elapsed<=duration; elapsed++)); do
-    printf "\rProgress : ["
-    already_done
-    remaining
-    printf "] %s%%" $((elapsed*100/duration))
-    sleep 0.05
-done
-
-echo
+    echo
 }
 
 # ---------------------------------------------------------
@@ -124,11 +124,11 @@ echo
 
 run() {
 
-if $DRY_RUN; then
-warn "[DRY-RUN] $*"
-else
-"$@"
-fi
+    if $DRY_RUN; then
+        warn "[DRY-RUN] $*"
+    else
+        "$@"
+    fi
 
 }
 
@@ -138,23 +138,23 @@ fi
 
 dns_health_check() {
 
-info "Running DNS health check"
+    info "Running DNS health check"
 
-if ! ss -lntup | grep -q ":53"; then
-error "DNS port 53 not listening"
-return 1
-fi
+    if ! ss -lntup | grep -q ":53"; then
+        error "DNS port 53 not listening"
+        return 1
+    fi
 
-if command -v dig >/dev/null 2>&1; then
+    if command -v dig >/dev/null 2>&1; then
 
-if ! dig @127.0.0.1 google.com +short >/dev/null 2>&1; then
-error "DNS query test failed"
-return 1
-fi
+        if ! dig @127.0.0.1 google.com +short >/dev/null 2>&1; then
+            error "DNS query test failed"
+            return 1
+        fi
 
-fi
+    fi
 
-success "DNS health check successful"
+    success "DNS health check successful"
 
 }
 
@@ -164,29 +164,29 @@ success "DNS health check successful"
 
 self_update() {
 
-info "Checking for updater updates"
+    info "Checking for updater updates"
 
-LATEST=$(curl --fail --silent --show-error \
-https://api.github.com/repos/$REPO/releases/latest \
-| grep '"tag_name"' \
-| cut -d '"' -f4)
+    LATEST=$(curl --fail --silent --show-error \
+        https://api.github.com/repos/$REPO/releases/latest |
+        grep '"tag_name"' |
+        cut -d '"' -f4)
 
-if [[ "v$VERSION" == "$LATEST" ]]; then
-success "Updater already up to date"
-exit 0
-fi
+    if [[ "v$VERSION" == "$LATEST" ]]; then
+        success "Updater already up to date"
+        exit 0
+    fi
 
-info "Updating updater to $LATEST"
+    info "Updating updater to $LATEST"
 
-TMP_FILE="/tmp/adguard-update.new"
+    TMP_FILE="/tmp/adguard-update.new"
 
-curl --fail --location --silent --show-error \
--o "$TMP_FILE" \
-"https://github.com/$REPO/releases/latest/download/adguard-update"
+    curl --fail --location --silent --show-error \
+        -o "$TMP_FILE" \
+        "https://github.com/$REPO/releases/latest/download/adguard-update"
 
-install -m 0755 "$TMP_FILE" /usr/local/sbin/adguard-update
+    install -m 0755 "$TMP_FILE" /usr/local/sbin/adguard-update
 
-success "Updater updated successfully"
+    success "Updater updated successfully"
 
 }
 
@@ -196,26 +196,26 @@ success "Updater updated successfully"
 
 show_status() {
 
-banner
+    banner
 
-echo "Updater version: $VERSION"
+    echo "Updater version: $VERSION"
 
-if [[ -f "$INSTALL_DIR/AdGuardHome" ]]; then
+    if [[ -f "$INSTALL_DIR/AdGuardHome" ]]; then
 
-AGH_VERSION=$("$INSTALL_DIR/AdGuardHome" --version | awk '{print $4}')
-echo "AdGuard Home version: $AGH_VERSION"
+        AGH_VERSION=$("$INSTALL_DIR/AdGuardHome" --version | awk '{print $4}')
+        echo "AdGuard Home version: $AGH_VERSION"
 
-else
+    else
 
-echo "AdGuard Home not detected"
+        echo "AdGuard Home not detected"
 
-fi
+    fi
 
-if systemctl is-active --quiet AdGuardHome; then
-success "Service running"
-else
-error "Service not running"
-fi
+    if systemctl is-active --quiet AdGuardHome; then
+        success "Service running"
+    else
+        error "Service not running"
+    fi
 
 }
 
@@ -224,56 +224,56 @@ fi
 # ---------------------------------------------------------
 
 for arg in "$@"; do
-case "$arg" in
+    case "$arg" in
 
---dry-run)
-DRY_RUN=true
-;;
+    --dry-run)
+        DRY_RUN=true
+        ;;
 
---force)
-FORCE=true
-;;
+    --force)
+        FORCE=true
+        ;;
 
---check)
-CHECK_ONLY=true
-;;
+    --check)
+        CHECK_ONLY=true
+        ;;
 
---self-update)
-self_update
-exit 0
-;;
+    --self-update)
+        self_update
+        exit 0
+        ;;
 
---status)
-show_status
-exit 0
-;;
+    --status)
+        show_status
+        exit 0
+        ;;
 
---version)
-echo "AdGuard Home Updater v$VERSION"
-exit 0
-;;
+    --version)
+        echo "AdGuard Home Updater v$VERSION"
+        exit 0
+        ;;
 
---help)
+    --help)
 
-banner
+        banner
 
-echo "Usage:"
-echo "  adguard-update [OPTIONS]"
-echo
-echo "Options:"
-echo "  --check"
-echo "  --dry-run"
-echo "  --force"
-echo "  --self-update"
-echo "  --status"
-echo "  --version"
-echo "  --help"
-echo
+        echo "Usage:"
+        echo "  adguard-update [OPTIONS]"
+        echo
+        echo "Options:"
+        echo "  --check"
+        echo "  --dry-run"
+        echo "  --force"
+        echo "  --self-update"
+        echo "  --status"
+        echo "  --version"
+        echo "  --help"
+        echo
 
-exit 0
-;;
+        exit 0
+        ;;
 
-esac
+    esac
 done
 
 banner
@@ -285,8 +285,8 @@ banner
 exec 200>"$LOCKFILE"
 
 flock -n 200 || {
-error "Another update process is running"
-exit 1
+    error "Another update process is running"
+    exit 1
 }
 
 trap 'rm -f "$LOCKFILE"' EXIT
@@ -302,9 +302,9 @@ aarch64) ARCH="arm64" ;;
 arm64) ARCH="arm64" ;;
 x86_64) ARCH="amd64" ;;
 *)
-error "Unsupported architecture"
-exit 1
-;;
+    error "Unsupported architecture"
+    exit 1
+    ;;
 esac
 
 info "Architecture detected: $ARCH"
@@ -313,24 +313,24 @@ CURRENT_VERSION=$("$INSTALL_DIR/AdGuardHome" --version | grep -oE '[0-9]+\.[0-9]
 
 info "Installed version: $CURRENT_VERSION"
 
-LATEST_VERSION=$(curl -s https://api.github.com/repos/AdguardTeam/AdGuardHome/releases/latest \
-| grep tag_name | cut -d '"' -f4 | sed 's/v//')
+LATEST_VERSION=$(curl -s https://api.github.com/repos/AdguardTeam/AdGuardHome/releases/latest |
+    grep tag_name | cut -d '"' -f4 | sed 's/v//')
 
 info "Latest version: $LATEST_VERSION"
 
 if $CHECK_ONLY; then
 
-echo
-echo "Installed version: $CURRENT_VERSION"
-echo "Latest version: $LATEST_VERSION"
+    echo
+    echo "Installed version: $CURRENT_VERSION"
+    echo "Latest version: $LATEST_VERSION"
 
-exit 0
+    exit 0
 
 fi
 
 if [[ "$CURRENT_VERSION" == "$LATEST_VERSION" && "$FORCE" = false ]]; then
-success "Already up to date"
-exit 0
+    success "Already up to date"
+    exit 0
 fi
 
 info "Downloading release"
@@ -350,8 +350,8 @@ EXPECTED=$(grep "$ARCHIVE" checksums.txt | awk '{print $1}')
 DOWNLOADED=$(sha256sum adguard.tar.gz | awk '{print $1}')
 
 if [[ "$EXPECTED" != "$DOWNLOADED" ]]; then
-error "Checksum verification failed"
-exit 1
+    error "Checksum verification failed"
+    exit 1
 fi
 
 success "Checksum valid"
@@ -376,21 +376,21 @@ run systemctl start AdGuardHome
 sleep 3
 
 if $DRY_RUN; then
-warn "Dry run completed"
+    warn "Dry run completed"
 else
 
-if systemctl is-active --quiet AdGuardHome && dns_health_check; then
-success "Update successful"
-else
+    if systemctl is-active --quiet AdGuardHome && dns_health_check; then
+        success "Update successful"
+    else
 
-error "Service failed — rolling back"
+        error "Service failed — rolling back"
 
-cp "$INSTALL_DIR/AdGuardHome.backup" "$INSTALL_DIR/AdGuardHome"
-systemctl start AdGuardHome
+        cp "$INSTALL_DIR/AdGuardHome.backup" "$INSTALL_DIR/AdGuardHome"
+        systemctl start AdGuardHome
 
-exit 1
+        exit 1
 
-fi
+    fi
 
 fi
 
