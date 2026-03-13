@@ -25,8 +25,8 @@ API_URL="https://api.github.com/repos/${REPO}/releases/latest"
 # ---------------------------------------------------------
 
 if [[ "$EUID" -ne 0 ]]; then
-echo "Please run as root"
-exit 1
+    echo "Please run as root"
+    exit 1
 fi
 
 echo
@@ -40,14 +40,14 @@ echo
 echo "Detecting latest release..."
 
 LATEST_VERSION=$(curl --fail --silent --show-error \
-"$API_URL" \
-| grep '"tag_name"' \
-| head -n1 \
-| cut -d '"' -f4)
+    "$API_URL" |
+    grep '"tag_name"' |
+    head -n1 |
+    cut -d '"' -f4)
 
 if [[ -z "$LATEST_VERSION" ]]; then
-echo "Failed to detect latest release"
-exit 1
+    echo "Failed to detect latest release"
+    exit 1
 fi
 
 echo "Latest version: $LATEST_VERSION"
@@ -62,8 +62,8 @@ DOWNLOAD_URL="https://github.com/${REPO}/releases/download/${LATEST_VERSION}/adg
 echo "Downloading updater..."
 
 curl --fail --location --silent --show-error \
--o "$INSTALL_PATH" \
-"$DOWNLOAD_URL"
+    -o "$INSTALL_PATH" \
+    "$DOWNLOAD_URL"
 
 chmod +x "$INSTALL_PATH"
 
@@ -78,7 +78,7 @@ echo
 
 echo "Installing systemd service..."
 
-cat > "$SERVICE_FILE" <<'EOF'
+cat >"$SERVICE_FILE" <<'EOF'
 [Unit]
 Description=AdGuard Home Update Check
 Documentation=https://github.com/foxly-it/adguard-home-updater
@@ -96,7 +96,7 @@ EOF
 
 echo "Installing systemd timer..."
 
-cat > "$TIMER_FILE" <<'EOF'
+cat >"$TIMER_FILE" <<'EOF'
 [Unit]
 Description=Daily AdGuard Home Update Check
 
@@ -128,20 +128,20 @@ read -r -p "Enable automatic updates via systemd timer? (y/N): " ENABLE_TIMER
 
 if [[ "$ENABLE_TIMER" =~ ^[Yy]$ ]]; then
 
-systemctl enable --now adguard-update.timer
+    systemctl enable --now adguard-update.timer
 
-echo
-echo "Automatic updates enabled."
-echo
+    echo
+    echo "Automatic updates enabled."
+    echo
 
 else
 
-echo
-echo "Automatic updates not enabled."
-echo "Enable later with:"
-echo
-echo "sudo systemctl enable --now adguard-update.timer"
-echo
+    echo
+    echo "Automatic updates not enabled."
+    echo "Enable later with:"
+    echo
+    echo "sudo systemctl enable --now adguard-update.timer"
+    echo
 
 fi
 

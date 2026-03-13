@@ -1,43 +1,73 @@
 name: CLI Screenshot
 
 on:
+
   workflow_dispatch:
+
   push:
     branches:
       - main
     paths:
       - adguard-update
-
-permissions:
-  contents: write
+      - install.sh
 
 jobs:
 
   screenshot:
+
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write
+
     steps:
+
+      # ----------------------------------------------------
+      # Checkout repository
+      # ----------------------------------------------------
 
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Install dependencies
+      # ----------------------------------------------------
+      # Install dependencies
+      # ----------------------------------------------------
+
+      - name: Install tools
         run: |
           sudo apt update
-          sudo apt install -y asciinema nodejs npm
+          sudo apt install -y nodejs npm
           npm install -g svg-term-cli
 
-      - name: Record CLI
+      # ----------------------------------------------------
+      # Generate CLI output
+      # ----------------------------------------------------
+
+      - name: Generate CLI preview
         run: |
           chmod +x adguard-update
-          asciinema rec cli.cast -c "./adguard-update --help" -t "AdGuard Home Updater CLI" -y
-
-      - name: Generate SVG
-        run: |
           mkdir -p assets
-          cat cli.cast | svg-term --out assets/cli-demo.svg
+
+          ./adguard-update --help > cli.txt
+
+      # ----------------------------------------------------
+      # Convert CLI output to SVG
+      # ----------------------------------------------------
+
+      - name: Render SVG
+        run: |
+          cat cli.txt | svg-term \
+            --out assets/cli-demo.svg \
+            --window \
+            --padding 20 \
+            --width 80 \
+            --term iterm2
+
+      # ----------------------------------------------------
+      # Commit if screenshot changed
+      # ----------------------------------------------------
 
       - name: Commit screenshot
         run: |
