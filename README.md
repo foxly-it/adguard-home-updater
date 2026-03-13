@@ -17,14 +17,13 @@ This project provides a small but robust update utility for AdGuard Home when in
 It is designed for **homelab DNS infrastructure**, where reliability matters more than flashy features.
 
 ---
-
-# Quick Install
-
 # CLI Preview
 
 <p align="center">
 <img src="assets/cli-demo.svg">
 </p>
+
+# Quick Install
 
 Install the updater with a **single command**:
 

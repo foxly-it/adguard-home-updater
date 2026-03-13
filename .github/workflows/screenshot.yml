@@ -2,9 +2,14 @@ name: CLI Screenshot
 
 on:
   workflow_dispatch:
+
   push:
+    branches:
+      - main
     paths:
       - adguard-update
+    paths-ignore:
+      - assets/cli-demo.svg
 
 jobs:
 
@@ -12,36 +17,62 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write
+
     steps:
 
-      - name: Checkout
+      # ---------------------------------------------------
+      # Checkout repository (real branch, no detached HEAD)
+      # ---------------------------------------------------
+
+      - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # ---------------------------------------------------
+      # Install dependencies
+      # ---------------------------------------------------
 
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y asciinema
+          sudo apt install -y asciinema nodejs npm
+          npm install -g svg-term-cli
+
+      # ---------------------------------------------------
+      # Record CLI demo
+      # ---------------------------------------------------
 
       - name: Record CLI
         run: |
           chmod +x adguard-update
           asciinema rec cli.cast -c "./adguard-update --help" -t "AdGuard Home Updater CLI" -y
 
-      - name: Convert to SVG
+      # ---------------------------------------------------
+      # Convert recording to SVG
+      # ---------------------------------------------------
+
+      - name: Generate SVG
         run: |
-          npm install -g svg-term-cli
-          cat cli.cast | svg-term --out cli-demo.svg
+          mkdir -p assets
+          cat cli.cast | svg-term --out assets/cli-demo.svg
+
+      # ---------------------------------------------------
+      # Commit screenshot if changed
+      # ---------------------------------------------------
 
       - name: Commit screenshot
         run: |
-          mkdir -p assets
-          mv cli-demo.svg assets/cli-demo.svg
-
           git config user.name "github-actions"
           git config user.email "actions@github.com"
 
           git add assets/cli-demo.svg
 
-          git commit -m "update CLI screenshot" || echo "no changes"
-
-          git push
+          if git diff --cached --quiet; then
+            echo "No screenshot changes"
+          else
+            git commit -m "docs: update CLI screenshot"
+            git push
+          fi
