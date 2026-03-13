@@ -1,7 +1,6 @@
 name: CLI Screenshot
 
 on:
-
   workflow_dispatch:
 
   push:
@@ -22,28 +21,10 @@ jobs:
 
     steps:
 
-      # ----------------------------------------------------
-      # Checkout repository
-      # ----------------------------------------------------
-
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      # ----------------------------------------------------
-      # Install dependencies
-      # ----------------------------------------------------
-
-      - name: Install tools
-        run: |
-          sudo apt update
-          sudo apt install -y nodejs npm
-          npm install -g svg-term-cli
-
-      # ----------------------------------------------------
-      # Generate CLI output
-      # ----------------------------------------------------
 
       - name: Generate CLI preview
         run: |
@@ -52,22 +33,33 @@ jobs:
 
           ./adguard-update --help > cli.txt
 
-      # ----------------------------------------------------
-      # Convert CLI output to SVG
-      # ----------------------------------------------------
-
-      - name: Render SVG
+      - name: Create static terminal screenshot
         run: |
-          cat cli.txt | svg-term \
-            --out assets/cli-demo.svg \
-            --window \
-            --padding 20 \
-            --width 80 \
-            --no-cursor
+          cat << 'EOF' > assets/cli-demo.svg
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="420" viewBox="0 0 800 420">
+<style>
+text { font-family: monospace; font-size: 14px; fill: #e6e6e6; }
+</style>
 
-      # ----------------------------------------------------
-      # Commit screenshot if changed
-      # ----------------------------------------------------
+<rect width="800" height="420" fill="#1e1e1e"/>
+
+<text x="20" y="40">AdGuard Home Updater</text>
+<text x="20" y="70">Foxly Infrastructure Tools</text>
+
+<text x="20" y="120">Usage:</text>
+<text x="20" y="150">  adguard-update [OPTIONS]</text>
+
+<text x="20" y="200">Options:</text>
+<text x="20" y="230">  --check</text>
+<text x="20" y="250">  --dry-run</text>
+<text x="20" y="270">  --force</text>
+<text x="20" y="290">  --self-update</text>
+<text x="20" y="310">  --status</text>
+<text x="20" y="330">  --version</text>
+<text x="20" y="350">  --help</text>
+
+</svg>
+EOF
 
       - name: Commit screenshot
         run: |
