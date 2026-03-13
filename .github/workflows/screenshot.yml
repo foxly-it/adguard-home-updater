@@ -63,10 +63,10 @@ jobs:
             --window \
             --padding 20 \
             --width 80 \
-            --term iterm2
+            --no-cursor
 
       # ----------------------------------------------------
-      # Commit if screenshot changed
+      # Commit screenshot if changed
       # ----------------------------------------------------
 
       - name: Commit screenshot
