@@ -1,0 +1,37 @@
+name: Shell Lint
+
+on:
+
+  push:
+    paths:
+      - adguard-update
+      - install.sh
+
+  pull_request:
+
+jobs:
+
+  lint:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install tools
+        run: |
+          sudo apt update
+          sudo apt install -y shellcheck
+          sudo snap install shfmt
+
+      - name: Run ShellCheck
+        run: |
+          shellcheck -x adguard-update
+          shellcheck -x install.sh
+
+      - name: Check formatting
+        run: |
+          shfmt -d adguard-update
+          shfmt -d install.sh

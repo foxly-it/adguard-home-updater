@@ -2,38 +2,26 @@ name: CLI Screenshot
 
 on:
   workflow_dispatch:
-
   push:
     branches:
       - main
     paths:
       - adguard-update
-    paths-ignore:
-      - assets/cli-demo.svg
+
+permissions:
+  contents: write
 
 jobs:
 
   screenshot:
-
     runs-on: ubuntu-latest
 
-    permissions:
-      contents: write
-
     steps:
-
-      # ---------------------------------------------------
-      # Checkout repository (real branch, no detached HEAD)
-      # ---------------------------------------------------
 
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      # ---------------------------------------------------
-      # Install dependencies
-      # ---------------------------------------------------
 
       - name: Install dependencies
         run: |
@@ -41,27 +29,15 @@ jobs:
           sudo apt install -y asciinema nodejs npm
           npm install -g svg-term-cli
 
-      # ---------------------------------------------------
-      # Record CLI demo
-      # ---------------------------------------------------
-
       - name: Record CLI
         run: |
           chmod +x adguard-update
           asciinema rec cli.cast -c "./adguard-update --help" -t "AdGuard Home Updater CLI" -y
 
-      # ---------------------------------------------------
-      # Convert recording to SVG
-      # ---------------------------------------------------
-
       - name: Generate SVG
         run: |
           mkdir -p assets
           cat cli.cast | svg-term --out assets/cli-demo.svg
-
-      # ---------------------------------------------------
-      # Commit screenshot if changed
-      # ---------------------------------------------------
 
       - name: Commit screenshot
         run: |
