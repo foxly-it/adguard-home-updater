@@ -64,6 +64,25 @@ EOF
 }
 
 # ---------------------------------------------------------
+# updater version check
+# ---------------------------------------------------------
+
+check_updater_version() {
+
+    LATEST=$(curl -fsSL \
+        https://api.github.com/repos/$REPO/releases/latest |
+        grep '"tag_name"' |
+        cut -d '"' -f4 | sed 's/v//')
+
+    if [[ "$LATEST" != "$VERSION" ]]; then
+        echo
+        warn "A new updater version is available ($LATEST)"
+        echo "Run: adguard-update --self-update"
+        echo
+    fi
+}
+
+# ---------------------------------------------------------
 # logging
 # ---------------------------------------------------------
 
@@ -166,10 +185,9 @@ self_update() {
 
     info "Checking for updater updates"
 
-    LATEST=$(curl -fsSL \
-        https://api.github.com/repos/$REPO/releases/latest |
-        grep '"tag_name"' |
-        cut -d '"' -f4)
+    API="https://api.github.com/repos/$REPO/releases/latest"
+
+    LATEST=$(curl -fsSL "$API" | grep '"tag_name"' | cut -d '"' -f4)
 
     if [[ "v$VERSION" == "$LATEST" ]]; then
         success "Updater already up to date"
@@ -182,19 +200,14 @@ self_update() {
 
     BASE_URL="https://github.com/$REPO/releases/download/$LATEST"
 
-    curl -fsSL \
-        "$BASE_URL/adguard-update" \
-        -o "$TMP_DIR/adguard-update"
+    curl -fsSL "$BASE_URL/adguard-update" -o "$TMP_DIR/adguard-update"
+    curl -fsSL "$BASE_URL/checksums.txt" -o "$TMP_DIR/checksums.txt"
 
-    curl -fsSL \
-        "$BASE_URL/checksums.txt" \
-        -o "$TMP_DIR/checksums.txt"
-
-    EXPECTED=$(grep adguard-update "$TMP_DIR/checksums.txt" | awk '{print $1}')
+    EXPECTED=$(grep "adguard-update" "$TMP_DIR/checksums.txt" | awk '{print $1}')
     ACTUAL=$(sha256sum "$TMP_DIR/adguard-update" | awk '{print $1}')
 
     if [[ "$EXPECTED" != "$ACTUAL" ]]; then
-        error "Checksum verification failed"
+        error "Updater checksum verification failed"
         exit 1
     fi
 
