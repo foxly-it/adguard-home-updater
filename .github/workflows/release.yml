@@ -1,3 +1,9 @@
+# =========================================================
+# File: .github/workflows/release.yml
+# Project: AdGuard Home Updater
+# Purpose: Build and publish release assets automatically
+# =========================================================
+
 name: Release
 
 on:
@@ -16,36 +22,66 @@ jobs:
 
     steps:
 
-      # Checkout repo
+      # -----------------------------------------------------
+      # Checkout repository
+      # -----------------------------------------------------
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # -----------------------------------------------------
       # Inject version into script
+      # replaces VERSION="dev" with VERSION="x.y.z"
+      # -----------------------------------------------------
+
       - name: Inject version
         run: |
           VERSION=${GITHUB_REF_NAME#v}
+          echo "Injecting version $VERSION"
           sed -i "s/VERSION=\"dev\"/VERSION=\"$VERSION\"/" adguard-update
 
+      # -----------------------------------------------------
+      # Make scripts executable
+      # -----------------------------------------------------
+
+      - name: Set executable permissions
+        run: |
+          chmod +x adguard-update
+          chmod +x install.sh
+
+      # -----------------------------------------------------
       # Generate checksums
+      # -----------------------------------------------------
+
       - name: Generate checksums
         run: |
           sha256sum adguard-update > adguard-update.sha256
           sha256sum adguard-update install.sh > checksums.txt
 
-      # Verify files exist
+      # -----------------------------------------------------
+      # Debug: verify files exist
+      # -----------------------------------------------------
+
       - name: Debug assets
         run: |
+          echo "Release assets:"
           ls -lh
 
-      # Create release
+      # -----------------------------------------------------
+      # Create GitHub release and upload assets
+      # -----------------------------------------------------
+
       - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-
-          name: Release ${{ github.ref_name }}
-
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          generate_release_notes: true
           files: |
             adguard-update
             adguard-update.sha256
             install.sh
             checksums.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
