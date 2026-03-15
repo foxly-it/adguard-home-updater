@@ -25,15 +25,15 @@ INTERACTIVE=true
 
 for arg in "$@"; do
     case "$arg" in
-        uninstall)
-            ACTION="uninstall"
-            ;;
-        --no-interactive)
-            INTERACTIVE=false
-            ;;
-        help|-h|--help)
-            ACTION="help"
-            ;;
+    uninstall)
+        ACTION="uninstall"
+        ;;
+    --no-interactive)
+        INTERACTIVE=false
+        ;;
+    help | -h | --help)
+        ACTION="help"
+        ;;
     esac
 done
 
@@ -42,12 +42,12 @@ done
 # ---------------------------------------------------------
 
 banner() {
-echo
-echo "=============================================="
-echo "      AdGuard Home Updater Installer"
-echo "=============================================="
-echo "Installer version: $INSTALLER_VERSION"
-echo
+    echo
+    echo "=============================================="
+    echo "      AdGuard Home Updater Installer"
+    echo "=============================================="
+    echo "Installer version: $INSTALLER_VERSION"
+    echo
 }
 
 # ---------------------------------------------------------
@@ -55,16 +55,16 @@ echo
 # ---------------------------------------------------------
 
 usage() {
-echo
-echo "Usage:"
-echo
-echo "  install.sh install            Install updater"
-echo "  install.sh uninstall          Remove updater"
-echo
-echo "Options:"
-echo
-echo "  --no-interactive              Disable prompts"
-echo
+    echo
+    echo "Usage:"
+    echo
+    echo "  install.sh install            Install updater"
+    echo "  install.sh uninstall          Remove updater"
+    echo
+    echo "Options:"
+    echo
+    echo "  --no-interactive              Disable prompts"
+    echo
 }
 
 # ---------------------------------------------------------
@@ -85,9 +85,9 @@ banner
 ARCH=$(uname -m)
 
 case "$ARCH" in
-    x86_64) ARCH_NAME="amd64" ;;
-    aarch64|arm64) ARCH_NAME="arm64" ;;
-    *) ARCH_NAME="unknown" ;;
+x86_64) ARCH_NAME="amd64" ;;
+aarch64 | arm64) ARCH_NAME="arm64" ;;
+*) ARCH_NAME="unknown" ;;
 esac
 
 echo "✔ detected architecture: $ARCH ($ARCH_NAME)"
@@ -97,18 +97,18 @@ echo "✔ detected architecture: $ARCH ($ARCH_NAME)"
 # ---------------------------------------------------------
 
 REMOTE_INSTALLER_VERSION=$(curl --silent \
-https://raw.githubusercontent.com/${REPO}/main/install.sh |
-grep INSTALLER_VERSION |
-head -n1 |
-cut -d '"' -f2 || echo "unknown")
+    https://raw.githubusercontent.com/${REPO}/main/install.sh |
+    grep INSTALLER_VERSION |
+    head -n1 |
+    cut -d '"' -f2 || echo "unknown")
 
 if [[ "$REMOTE_INSTALLER_VERSION" != "$INSTALLER_VERSION" ]] && [[ "$REMOTE_INSTALLER_VERSION" != "unknown" ]]; then
 
-echo
-echo "⚠ A newer installer version is available"
-echo "  Current: $INSTALLER_VERSION"
-echo "  Latest : $REMOTE_INSTALLER_VERSION"
-echo
+    echo
+    echo "⚠ A newer installer version is available"
+    echo "  Current: $INSTALLER_VERSION"
+    echo "  Latest : $REMOTE_INSTALLER_VERSION"
+    echo
 fi
 
 # ---------------------------------------------------------
@@ -116,8 +116,8 @@ fi
 # ---------------------------------------------------------
 
 if [[ "$ACTION" == "help" ]]; then
-usage
-exit 0
+    usage
+    exit 0
 fi
 
 # ---------------------------------------------------------
@@ -126,23 +126,23 @@ fi
 
 if [[ "$ACTION" == "uninstall" ]]; then
 
-echo
-echo "Removing updater..."
+    echo
+    echo "Removing updater..."
 
-systemctl stop adguard-update.timer 2>/dev/null || true
-systemctl disable adguard-update.timer 2>/dev/null || true
+    systemctl stop adguard-update.timer 2>/dev/null || true
+    systemctl disable adguard-update.timer 2>/dev/null || true
 
-rm -f "$SERVICE_FILE"
-rm -f "$TIMER_FILE"
+    rm -f "$SERVICE_FILE"
+    rm -f "$TIMER_FILE"
 
-systemctl daemon-reload
+    systemctl daemon-reload
 
-rm -f "$INSTALL_PATH"
+    rm -f "$INSTALL_PATH"
 
-echo "✔ updater removed"
-echo
+    echo "✔ updater removed"
+    echo
 
-exit 0
+    exit 0
 fi
 
 # ---------------------------------------------------------
@@ -153,13 +153,13 @@ echo
 echo "Detecting latest release..."
 
 LATEST_VERSION=$(curl --fail --silent "$API_URL" |
-grep '"tag_name"' |
-head -n1 |
-cut -d '"' -f4)
+    grep '"tag_name"' |
+    head -n1 |
+    cut -d '"' -f4)
 
 if [[ -z "$LATEST_VERSION" ]]; then
-echo "Failed to detect latest release"
-exit 1
+    echo "Failed to detect latest release"
+    exit 1
 fi
 
 echo "✔ latest version: $LATEST_VERSION"
@@ -172,20 +172,20 @@ DOWNLOAD_URL="https://github.com/${REPO}/releases/download/${LATEST_VERSION}/adg
 
 if [[ -f "$INSTALL_PATH" ]]; then
 
-CURRENT_VERSION=$("$INSTALL_PATH" --version 2>/dev/null || echo "unknown")
+    CURRENT_VERSION=$("$INSTALL_PATH" --version 2>/dev/null || echo "unknown")
 
-echo "✔ existing installation detected"
+    echo "✔ existing installation detected"
 
-echo "  installed: $CURRENT_VERSION"
-echo "  latest   : $LATEST_VERSION"
+    echo "  installed: $CURRENT_VERSION"
+    echo "  latest   : $LATEST_VERSION"
 
-if [[ "$CURRENT_VERSION" == "$LATEST_VERSION" ]]; then
-echo
-echo "Updater already up to date."
-exit 0
-fi
+    if [[ "$CURRENT_VERSION" == "$LATEST_VERSION" ]]; then
+        echo
+        echo "Updater already up to date."
+        exit 0
+    fi
 
-echo "Updating updater..."
+    echo "Updating updater..."
 fi
 
 # ---------------------------------------------------------
@@ -198,12 +198,12 @@ echo
 echo "Downloading updater..."
 
 curl --fail --location --retry 3 \
--o "$TMP_DIR/adguard-update" \
-"$DOWNLOAD_URL"
+    -o "$TMP_DIR/adguard-update" \
+    "$DOWNLOAD_URL"
 
 curl --fail --location --retry 3 \
--o "$TMP_DIR/adguard-update.sha256" \
-"https://github.com/${REPO}/releases/download/${LATEST_VERSION}/adguard-update.sha256"
+    -o "$TMP_DIR/adguard-update.sha256" \
+    "https://github.com/${REPO}/releases/download/${LATEST_VERSION}/adguard-update.sha256"
 
 echo "Verifying checksum..."
 
@@ -226,7 +226,7 @@ echo "✔ updater installed"
 
 if [[ ! -f "$SERVICE_FILE" ]]; then
 
-cat >"$SERVICE_FILE" <<EOF
+    cat >"$SERVICE_FILE" <<EOF
 [Unit]
 Description=AdGuard Home Update Check
 Documentation=https://github.com/${REPO}
@@ -238,7 +238,7 @@ ExecStart=$INSTALL_PATH
 User=root
 EOF
 
-echo "✔ systemd service installed"
+    echo "✔ systemd service installed"
 fi
 
 # ---------------------------------------------------------
@@ -247,7 +247,7 @@ fi
 
 if [[ ! -f "$TIMER_FILE" ]]; then
 
-cat >"$TIMER_FILE" <<EOF
+    cat >"$TIMER_FILE" <<EOF
 [Unit]
 Description=Daily AdGuard Home Update Check
 
@@ -261,7 +261,7 @@ AccuracySec=10m
 WantedBy=timers.target
 EOF
 
-echo "✔ systemd timer installed"
+    echo "✔ systemd timer installed"
 fi
 
 systemctl daemon-reload
@@ -273,23 +273,23 @@ systemctl daemon-reload
 ENABLE_TIMER="n"
 
 if [[ "$INTERACTIVE" == true ]]; then
-read -r -p "Enable automatic updates? (y/N): " ENABLE_TIMER
+    read -r -p "Enable automatic updates? (y/N): " ENABLE_TIMER
 fi
 
 if [[ "$ENABLE_TIMER" =~ ^[Yy]$ ]]; then
 
-systemctl enable --now adguard-update.timer
+    systemctl enable --now adguard-update.timer
 
-echo "✔ automatic updates enabled"
+    echo "✔ automatic updates enabled"
 
 else
 
-echo
-echo "Automatic updates disabled"
-echo
-echo "Enable later with:"
-echo
-echo "sudo systemctl enable --now adguard-update.timer"
+    echo
+    echo "Automatic updates disabled"
+    echo
+    echo "Enable later with:"
+    echo
+    echo "sudo systemctl enable --now adguard-update.timer"
 
 fi
 
