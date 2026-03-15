@@ -23,8 +23,7 @@ jobs:
       - name: Install tools
         run: |
           sudo apt update
-          sudo apt install -y shellcheck
-          sudo snap install shfmt
+          sudo apt install -y shellcheck shfmt
 
       - name: Run ShellCheck
         run: |
@@ -33,5 +32,4 @@ jobs:
 
       - name: Check formatting
         run: |
-          shfmt -d adguard-update
-          shfmt -d install.sh
+          shfmt -i 4 -ci -sr -d .
