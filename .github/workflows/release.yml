@@ -1,7 +1,5 @@
 # =========================================================
 # File: .github/workflows/release.yml
-# Project: AdGuard Home Updater
-# Purpose: Build and publish release assets automatically
 # =========================================================
 
 name: Release
@@ -31,7 +29,6 @@ jobs:
 
       # -----------------------------------------------------
       # Inject version into script
-      # replaces VERSION="dev" with VERSION="x.y.z"
       # -----------------------------------------------------
 
       - name: Inject version
@@ -41,7 +38,7 @@ jobs:
           sed -i "s/VERSION=\"dev\"/VERSION=\"$VERSION\"/" adguard-update
 
       # -----------------------------------------------------
-      # Make scripts executable
+      # Make executable
       # -----------------------------------------------------
 
       - name: Set executable permissions
@@ -59,29 +56,41 @@ jobs:
           sha256sum adguard-update install.sh > checksums.txt
 
       # -----------------------------------------------------
-      # Debug: verify files exist
+      # Debug: show files
       # -----------------------------------------------------
 
-      - name: Debug assets
+      - name: Show files
         run: |
-          echo "Release assets:"
-          ls -lh
+          echo "Workspace:"
+          pwd
+          ls -lah
 
       # -----------------------------------------------------
-      # Create GitHub release and upload assets
+      # Create release
       # -----------------------------------------------------
 
       - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/')
+        id: release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
           generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # -----------------------------------------------------
+      # Upload assets (separate step)
+      # -----------------------------------------------------
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
           files: |
-            adguard-update
-            adguard-update.sha256
-            install.sh
-            checksums.txt
+            ./adguard-update
+            ./adguard-update.sha256
+            ./install.sh
+            ./checksums.txt
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
