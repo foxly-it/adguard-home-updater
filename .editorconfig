@@ -1,5 +1,5 @@
 # EditorConfig helps maintain consistent coding styles
-# across different editors and IDEs.
+# across editors and IDEs.
 
 root = true
 
@@ -11,11 +11,20 @@ indent_style = space
 indent_size = 4
 trim_trailing_whitespace = true
 
+# Shell scripts
 [*.sh]
+indent_style = space
 indent_size = 4
 
+# YAML (GitHub Actions etc.)
 [*.yml]
+indent_style = space
 indent_size = 2
 
+[*.yaml]
+indent_style = space
+indent_size = 2
+
+# Markdown
 [*.md]
 trim_trailing_whitespace = false

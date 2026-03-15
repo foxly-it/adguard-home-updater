@@ -1,0 +1,22 @@
+name: Shell Format
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  shfmt:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install shfmt
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shfmt
+
+      - name: Check formatting
+        run: |
+          shfmt -i 4 -ci -sr -d .
