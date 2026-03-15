@@ -206,23 +206,29 @@ TMP_DIR=$(mktemp -d)
 echo
 echo "Downloading updater..."
 
-curl -fsSL --retry 3 \
-    -o "$TMP_DIR/adguard-update" \
-    "$DOWNLOAD_URL"
+BASE_URL="https://github.com/${REPO}/releases/download/${LATEST_VERSION}"
 
 curl -fsSL --retry 3 \
-    -o "$TMP_DIR/adguard-update.sha256" \
-    "https://github.com/${REPO}/releases/download/${LATEST_VERSION}/adguard-update.sha256"
+    -o "$TMP_DIR/adguard-update" \
+    "$BASE_URL/adguard-update"
+
+curl -fsSL --retry 3 \
+    -o "$TMP_DIR/checksums.txt" \
+    "$BASE_URL/checksums.txt"
 
 echo "Verifying checksum..."
 
-cd "$TMP_DIR"
+EXPECTED=$(grep "adguard-update" "$TMP_DIR/checksums.txt" | awk '{print $1}')
+DOWNLOADED=$(sha256sum "$TMP_DIR/adguard-update" | awk '{print $1}')
 
-sha256sum -c adguard-update.sha256
+if [[ "$EXPECTED" != "$DOWNLOADED" ]]; then
+    echo "Checksum verification failed"
+    exit 1
+fi
 
 echo "✔ checksum verified"
 
-mv adguard-update "$INSTALL_PATH"
+mv "$TMP_DIR/adguard-update" "$INSTALL_PATH"
 chmod +x "$INSTALL_PATH"
 
 rm -rf "$TMP_DIR"

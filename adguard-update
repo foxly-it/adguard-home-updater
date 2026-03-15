@@ -166,7 +166,7 @@ self_update() {
 
     info "Checking for updater updates"
 
-    LATEST=$(curl --fail --silent --show-error \
+    LATEST=$(curl --fail --silent \
         https://api.github.com/repos/$REPO/releases/latest |
         grep '"tag_name"' |
         cut -d '"' -f4)
@@ -178,13 +178,29 @@ self_update() {
 
     info "Updating updater to $LATEST"
 
-    TMP_FILE="/tmp/adguard-update.new"
+    TMP_DIR=$(mktemp -d)
 
-    curl --fail --location --silent --show-error \
-        -o "$TMP_FILE" \
-        "https://github.com/$REPO/releases/latest/download/adguard-update"
+    BASE_URL="https://github.com/$REPO/releases/download/$LATEST"
 
-    install -m 0755 "$TMP_FILE" /usr/local/sbin/adguard-update
+    curl -fsSL \
+        "$BASE_URL/adguard-update" \
+        -o "$TMP_DIR/adguard-update"
+
+    curl -fsSL \
+        "$BASE_URL/checksums.txt" \
+        -o "$TMP_DIR/checksums.txt"
+
+    EXPECTED=$(grep "adguard-update" "$TMP_DIR/checksums.txt" | awk '{print $1}')
+    DOWNLOADED=$(sha256sum "$TMP_DIR/adguard-update" | awk '{print $1}')
+
+    if [[ "$EXPECTED" != "$DOWNLOADED" ]]; then
+        error "Updater checksum verification failed"
+        exit 1
+    fi
+
+    install -m 0755 "$TMP_DIR/adguard-update" /usr/local/sbin/adguard-update
+
+    rm -rf "$TMP_DIR"
 
     success "Updater updated successfully"
 
