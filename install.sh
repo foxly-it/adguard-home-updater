@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail 2>/dev/null || set -eu
+set -euo pipefail 2> /dev/null || set -eu
 
 # =========================================================
 # AdGuard Home Updater Installer
@@ -25,15 +25,15 @@ INTERACTIVE=true
 
 for arg in "$@"; do
     case "$arg" in
-    uninstall)
-        ACTION="uninstall"
-        ;;
-    --no-interactive)
-        INTERACTIVE=false
-        ;;
-    help | -h | --help)
-        ACTION="help"
-        ;;
+        uninstall)
+            ACTION="uninstall"
+            ;;
+        --no-interactive)
+            INTERACTIVE=false
+            ;;
+        help | -h | --help)
+            ACTION="help"
+            ;;
     esac
 done
 
@@ -85,9 +85,9 @@ banner
 ARCH=$(uname -m)
 
 case "$ARCH" in
-x86_64) ARCH_NAME="amd64" ;;
-aarch64 | arm64) ARCH_NAME="arm64" ;;
-*) ARCH_NAME="unknown" ;;
+    x86_64) ARCH_NAME="amd64" ;;
+    aarch64 | arm64) ARCH_NAME="arm64" ;;
+    *) ARCH_NAME="unknown" ;;
 esac
 
 echo "✔ detected architecture: $ARCH ($ARCH_NAME)"
@@ -129,8 +129,8 @@ if [[ "$ACTION" == "uninstall" ]]; then
     echo
     echo "Removing updater..."
 
-    systemctl stop adguard-update.timer 2>/dev/null || true
-    systemctl disable adguard-update.timer 2>/dev/null || true
+    systemctl stop adguard-update.timer 2> /dev/null || true
+    systemctl disable adguard-update.timer 2> /dev/null || true
 
     rm -f "$SERVICE_FILE"
     rm -f "$TIMER_FILE"
@@ -172,7 +172,7 @@ DOWNLOAD_URL="https://github.com/${REPO}/releases/download/${LATEST_VERSION}/adg
 
 if [[ -f "$INSTALL_PATH" ]]; then
 
-    CURRENT_VERSION=$("$INSTALL_PATH" --version 2>/dev/null || echo "unknown")
+    CURRENT_VERSION=$("$INSTALL_PATH" --version 2> /dev/null || echo "unknown")
 
     echo "✔ existing installation detected"
 
@@ -226,7 +226,7 @@ echo "✔ updater installed"
 
 if [[ ! -f "$SERVICE_FILE" ]]; then
 
-    cat >"$SERVICE_FILE" <<EOF
+    cat > "$SERVICE_FILE" << EOF
 [Unit]
 Description=AdGuard Home Update Check
 Documentation=https://github.com/${REPO}
@@ -247,7 +247,7 @@ fi
 
 if [[ ! -f "$TIMER_FILE" ]]; then
 
-    cat >"$TIMER_FILE" <<EOF
+    cat > "$TIMER_FILE" << EOF
 [Unit]
 Description=Daily AdGuard Home Update Check
 

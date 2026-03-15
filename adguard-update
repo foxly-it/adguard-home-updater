@@ -48,7 +48,7 @@ NC="\033[0m"
 # ---------------------------------------------------------
 
 banner() {
-    cat <<"EOF"
+    cat << "EOF"
 
  █████╗ ██████╗  ██████╗ ██╗   ██╗ █████╗ ██████╗ ██████╗
 ██╔══██╗██╔══██╗██╔════╝ ██║   ██║██╔══██╗██╔══██╗██╔══██╗
@@ -145,9 +145,9 @@ dns_health_check() {
         return 1
     fi
 
-    if command -v dig >/dev/null 2>&1; then
+    if command -v dig > /dev/null 2>&1; then
 
-        if ! dig @127.0.0.1 google.com +short >/dev/null 2>&1; then
+        if ! dig @127.0.0.1 google.com +short > /dev/null 2>&1; then
             error "DNS query test failed"
             return 1
         fi
@@ -226,52 +226,52 @@ show_status() {
 for arg in "$@"; do
     case "$arg" in
 
-    --dry-run)
-        DRY_RUN=true
-        ;;
+        --dry-run)
+            DRY_RUN=true
+            ;;
 
-    --force)
-        FORCE=true
-        ;;
+        --force)
+            FORCE=true
+            ;;
 
-    --check)
-        CHECK_ONLY=true
-        ;;
+        --check)
+            CHECK_ONLY=true
+            ;;
 
-    --self-update)
-        self_update
-        exit 0
-        ;;
+        --self-update)
+            self_update
+            exit 0
+            ;;
 
-    --status)
-        show_status
-        exit 0
-        ;;
+        --status)
+            show_status
+            exit 0
+            ;;
 
-    --version)
-        echo "AdGuard Home Updater v$VERSION"
-        exit 0
-        ;;
+        --version)
+            echo "AdGuard Home Updater v$VERSION"
+            exit 0
+            ;;
 
-    --help)
+        --help)
 
-        banner
+            banner
 
-        echo "Usage:"
-        echo "  adguard-update [OPTIONS]"
-        echo
-        echo "Options:"
-        echo "  --check"
-        echo "  --dry-run"
-        echo "  --force"
-        echo "  --self-update"
-        echo "  --status"
-        echo "  --version"
-        echo "  --help"
-        echo
+            echo "Usage:"
+            echo "  adguard-update [OPTIONS]"
+            echo
+            echo "Options:"
+            echo "  --check"
+            echo "  --dry-run"
+            echo "  --force"
+            echo "  --self-update"
+            echo "  --status"
+            echo "  --version"
+            echo "  --help"
+            echo
 
-        exit 0
-        ;;
+            exit 0
+            ;;
 
     esac
 done
@@ -282,7 +282,7 @@ banner
 # lock protection
 # ---------------------------------------------------------
 
-exec 200>"$LOCKFILE"
+exec 200> "$LOCKFILE"
 
 flock -n 200 || {
     error "Another update process is running"
@@ -298,13 +298,13 @@ trap 'rm -f "$LOCKFILE"' EXIT
 ARCH=$(uname -m)
 
 case "$ARCH" in
-aarch64) ARCH="arm64" ;;
-arm64) ARCH="arm64" ;;
-x86_64) ARCH="amd64" ;;
-*)
-    error "Unsupported architecture"
-    exit 1
-    ;;
+    aarch64) ARCH="arm64" ;;
+    arm64) ARCH="arm64" ;;
+    x86_64) ARCH="amd64" ;;
+    *)
+        error "Unsupported architecture"
+        exit 1
+        ;;
 esac
 
 info "Architecture detected: $ARCH"
