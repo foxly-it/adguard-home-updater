@@ -5,7 +5,7 @@ set -euo pipefail 2> /dev/null || set -eu
 # AdGuard Home Updater Installer
 # =========================================================
 
-INSTALLER_VERSION="1.1.0"
+INSTALLER_VERSION="1.1.1"
 
 REPO="foxly-it/adguard-home-updater"
 
@@ -18,6 +18,14 @@ API_URL="https://api.github.com/repos/${REPO}/releases/latest"
 
 ACTION="install"
 INTERACTIVE=true
+
+# ---------------------------------------------------------
+# detect piped execution (no TTY)
+# ---------------------------------------------------------
+
+if [[ ! -t 0 ]]; then
+    INTERACTIVE=false
+fi
 
 # ---------------------------------------------------------
 # parse arguments
@@ -87,7 +95,10 @@ ARCH=$(uname -m)
 case "$ARCH" in
     x86_64) ARCH_NAME="amd64" ;;
     aarch64 | arm64) ARCH_NAME="arm64" ;;
-    *) ARCH_NAME="unknown" ;;
+    *)
+        echo "Unsupported architecture: $ARCH"
+        exit 1
+        ;;
 esac
 
 echo "✔ detected architecture: $ARCH ($ARCH_NAME)"
@@ -96,14 +107,13 @@ echo "✔ detected architecture: $ARCH ($ARCH_NAME)"
 # installer version check
 # ---------------------------------------------------------
 
-REMOTE_INSTALLER_VERSION=$(curl --silent \
+REMOTE_INSTALLER_VERSION=$(curl -fsSL \
     https://raw.githubusercontent.com/${REPO}/main/install.sh |
     grep INSTALLER_VERSION |
     head -n1 |
     cut -d '"' -f2 || echo "unknown")
 
 if [[ "$REMOTE_INSTALLER_VERSION" != "$INSTALLER_VERSION" ]] && [[ "$REMOTE_INSTALLER_VERSION" != "unknown" ]]; then
-
     echo
     echo "⚠ A newer installer version is available"
     echo "  Current: $INSTALLER_VERSION"
@@ -152,7 +162,7 @@ fi
 echo
 echo "Detecting latest release..."
 
-LATEST_VERSION=$(curl --fail --silent "$API_URL" |
+LATEST_VERSION=$(curl -fsSL "$API_URL" |
     grep '"tag_name"' |
     head -n1 |
     cut -d '"' -f4)
@@ -175,7 +185,6 @@ if [[ -f "$INSTALL_PATH" ]]; then
     CURRENT_VERSION=$("$INSTALL_PATH" --version 2> /dev/null || echo "unknown")
 
     echo "✔ existing installation detected"
-
     echo "  installed: $CURRENT_VERSION"
     echo "  latest   : $LATEST_VERSION"
 
@@ -197,11 +206,11 @@ TMP_DIR=$(mktemp -d)
 echo
 echo "Downloading updater..."
 
-curl --fail --location --retry 3 \
+curl -fsSL --retry 3 \
     -o "$TMP_DIR/adguard-update" \
     "$DOWNLOAD_URL"
 
-curl --fail --location --retry 3 \
+curl -fsSL --retry 3 \
     -o "$TMP_DIR/adguard-update.sha256" \
     "https://github.com/${REPO}/releases/download/${LATEST_VERSION}/adguard-update.sha256"
 
@@ -274,6 +283,8 @@ ENABLE_TIMER="n"
 
 if [[ "$INTERACTIVE" == true ]]; then
     read -r -p "Enable automatic updates? (y/N): " ENABLE_TIMER
+else
+    ENABLE_TIMER="y"
 fi
 
 if [[ "$ENABLE_TIMER" =~ ^[Yy]$ ]]; then
