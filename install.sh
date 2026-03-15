@@ -174,8 +174,6 @@ fi
 
 echo "✔ latest version: $LATEST_VERSION"
 
-DOWNLOAD_URL="https://github.com/${REPO}/releases/download/${LATEST_VERSION}/adguard-update"
-
 # ---------------------------------------------------------
 # existing installation
 # ---------------------------------------------------------
