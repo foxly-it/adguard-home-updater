@@ -166,7 +166,7 @@ self_update() {
 
     info "Checking for updater updates"
 
-    LATEST=$(curl --fail --silent \
+    LATEST=$(curl -fsSL \
         https://api.github.com/repos/$REPO/releases/latest |
         grep '"tag_name"' |
         cut -d '"' -f4)
@@ -190,11 +190,11 @@ self_update() {
         "$BASE_URL/checksums.txt" \
         -o "$TMP_DIR/checksums.txt"
 
-    EXPECTED=$(grep "adguard-update" "$TMP_DIR/checksums.txt" | awk '{print $1}')
-    DOWNLOADED=$(sha256sum "$TMP_DIR/adguard-update" | awk '{print $1}')
+    EXPECTED=$(grep adguard-update "$TMP_DIR/checksums.txt" | awk '{print $1}')
+    ACTUAL=$(sha256sum "$TMP_DIR/adguard-update" | awk '{print $1}')
 
-    if [[ "$EXPECTED" != "$DOWNLOADED" ]]; then
-        error "Updater checksum verification failed"
+    if [[ "$EXPECTED" != "$ACTUAL" ]]; then
+        error "Checksum verification failed"
         exit 1
     fi
 
