@@ -13,17 +13,39 @@
 
 Safe and automated updater for **AdGuard Home bare-metal installations**.
 
-This project provides a small but robust update utility for AdGuard Home when installed directly on a Linux host without Docker.
+This project provides a small but robust update utility for **AdGuard Home when installed directly on a Linux host without Docker**.
 
 It is designed for **homelab DNS infrastructure**, where reliability matters more than flashy features.
 
 ---
 
-## CLI Preview
+# Why this project exists
+
+AdGuard Home includes a built-in updater that works well on **amd64 systems**.
+
+However, on many **ARM64 systems (e.g. Raspberry Pi)** the internal updater frequently fails and requests manual updates.
+
+Typical scenario:
+
+```
+Update available
+↓
+Download starts
+↓
+Installation fails
+↓
+Manual update required
+```
+
+For infrastructure services like DNS this becomes annoying quickly.
+
+This updater automates the entire process safely.
+
+---
+
+# CLI Preview
 
 ![AdGuard Home Updater CLI](assets/cli-preview.png)
-
-The updater provides a simple command-line interface for safely updating AdGuard Home installations on bare-metal Linux systems.
 
 Example:
 
@@ -31,7 +53,7 @@ Example:
 adguard-update --check
 ```
 
-Check available update safely:
+Dry-run update simulation:
 
 ```bash
 sudo adguard-update --dry-run
@@ -39,7 +61,7 @@ sudo adguard-update --dry-run
 
 ---
 
-## Quick Install
+# Quick Install
 
 Install the updater with a **single command**:
 
@@ -52,10 +74,37 @@ The installer will automatically:
 - install `adguard-update`
 - install systemd service
 - optionally enable automatic updates
+- verify download integrity
 
 ---
 
-## Quick Test (Dry-Run without installation)
+# Uninstall
+
+Remove the updater completely:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/foxly-it/adguard-home-updater/main/install.sh | sudo bash -s uninstall
+```
+
+This removes:
+
+- updater binary
+- systemd service
+- systemd timer
+
+---
+
+# Non-interactive Install
+
+For automation tools like **Ansible or cloud-init**:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/foxly-it/adguard-home-updater/main/install.sh | sudo bash -s -- --no-interactive
+```
+
+---
+
+# Quick Test (Dry-Run without installation)
 
 Run the updater **without installing it**:
 
@@ -69,11 +118,9 @@ Check if an update is available:
 curl -fsSL https://raw.githubusercontent.com/foxly-it/adguard-home-updater/main/adguard-update | sudo bash -s -- --check
 ```
 
-This allows testing the updater without installing it.
-
 ---
 
-## Features
+# Features
 
 | Feature | Description |
 |---|---|
@@ -93,9 +140,9 @@ This allows testing the updater without installing it.
 
 ---
 
-## Usage
+# Usage
 
-### Status
+## Status
 
 ```bash
 adguard-update --status
@@ -103,7 +150,7 @@ adguard-update --status
 
 ---
 
-### Check for update
+## Check for update
 
 ```bash
 adguard-update --check
@@ -123,7 +170,7 @@ Status: update available
 
 ---
 
-### Dry-run
+## Dry-run
 
 Simulate the update workflow:
 
@@ -133,7 +180,7 @@ sudo adguard-update --dry-run
 
 ---
 
-### Normal update
+## Normal update
 
 ```bash
 sudo adguard-update
@@ -141,7 +188,7 @@ sudo adguard-update
 
 ---
 
-### Force update
+## Force update
 
 ```bash
 sudo adguard-update --force
@@ -149,7 +196,7 @@ sudo adguard-update --force
 
 ---
 
-### Update the updater
+## Update the updater
 
 ```bash
 sudo adguard-update --self-update
@@ -157,9 +204,9 @@ sudo adguard-update --self-update
 
 ---
 
-## Update Workflow
+# Update Workflow
 
-```text
+```
 Version Check
       ↓
 Download Release
@@ -183,11 +230,11 @@ DNS Health Check
 Rollback on Failure
 ```
 
-This keeps the process simple, auditable, and safe for infrastructure services.
+This keeps the process **simple, auditable and safe for infrastructure services**.
 
 ---
 
-## Logging
+# Logging
 
 All activity is written to:
 
@@ -195,7 +242,7 @@ All activity is written to:
 /var/log/adguard-update.log
 ```
 
-Example log output:
+Example:
 
 ```
 2026-03-11 03:10:01 - Architecture detected: arm64
@@ -209,9 +256,9 @@ Example log output:
 
 ---
 
-## systemd Automation
+# systemd Automation
 
-The installer can automatically configure a **systemd timer**.
+The installer can configure a **systemd timer** for automatic update checks.
 
 Check timer status:
 
@@ -233,35 +280,25 @@ systemctl list-timers | grep adguard
 
 ---
 
-## Safety Mechanisms
+# Security
 
-### Lockfile
+The installer verifies the integrity of downloaded files using **SHA256 checksums**.
+
+Each release includes:
 
 ```
-/var/run/adguard-update.lock
+adguard-update
+adguard-update.sha256
+checksums.txt
 ```
 
-Prevents concurrent update runs.
+This protects against corrupted downloads or supply-chain attacks.
 
 ---
 
-### Binary backup
+# Example Homelab Architecture
 
 ```
-/opt/AdGuardHome/AdGuardHome.backup
-```
-
----
-
-### Automatic rollback
-
-If the service fails after update, the previous binary is restored automatically.
-
----
-
-## Example Homelab Architecture
-
-```text
 Clients
    ↓
 AdGuard Home
@@ -273,7 +310,7 @@ Internet DNS hierarchy
 
 Updater integration:
 
-```text
+```
 AdGuard Home
      │
      └── adguard-update
@@ -286,7 +323,7 @@ AdGuard Home
 
 ---
 
-## Requirements
+# Requirements
 
 - Linux host
 - systemd
@@ -311,7 +348,7 @@ ss
 
 ---
 
-## Contributing
+# Contributing
 
 Contributions, ideas and improvements are welcome.
 
@@ -319,13 +356,13 @@ Please open an issue or submit a pull request.
 
 ---
 
-## License
+# License
 
 MIT License
 
 ---
 
-## Disclaimer
+# Disclaimer
 
 This project is **not affiliated with AdGuard**.
 

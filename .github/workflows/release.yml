@@ -25,6 +25,12 @@ jobs:
           fetch-depth: 0
 
       # ---------------------------------------------------------
+      # Ensure script executable
+      # ---------------------------------------------------------
+
+      - name: Ensure script executable
+        run: chmod +x adguard-update
+      # ---------------------------------------------------------
       # Inject version into script
       # ---------------------------------------------------------
 
@@ -39,6 +45,7 @@ jobs:
 
       - name: Generate checksums
         run: |
+          sha256sum adguard-update > adguard-update.sha256
           sha256sum adguard-update install.sh > checksums.txt
 
       # ---------------------------------------------------------
@@ -79,6 +86,7 @@ jobs:
           echo "## Assets" >> RELEASE_NOTES.md
           echo "" >> RELEASE_NOTES.md
           echo "- adguard-update" >> RELEASE_NOTES.md
+          echo "- adguard-update.sha256" >> RELEASE_NOTES.md
           echo "- install.sh" >> RELEASE_NOTES.md
           echo "- checksums.txt" >> RELEASE_NOTES.md
 
@@ -96,5 +104,6 @@ jobs:
 
           files: |
             adguard-update
+            adguard-update.sha256
             install.sh
             checksums.txt
