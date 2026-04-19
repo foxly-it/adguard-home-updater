@@ -307,10 +307,6 @@ done
 
 banner
 
-# ---------------------------------------------------------
-# lock protection
-# ---------------------------------------------------------
-
 exec 200> "$LOCKFILE"
 
 flock -n 200 || {
@@ -319,10 +315,6 @@ flock -n 200 || {
 }
 
 trap 'rm -f "$LOCKFILE"' EXIT
-
-# ---------------------------------------------------------
-# architecture detection
-# ---------------------------------------------------------
 
 ARCH=$(uname -m)
 
@@ -339,23 +331,13 @@ esac
 info "Architecture detected: $ARCH"
 
 CURRENT_VERSION=$("$INSTALL_DIR/AdGuardHome" --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
-
-info "Installed version: $CURRENT_VERSION"
-
 LATEST_VERSION=$(curl -s https://api.github.com/repos/AdguardTeam/AdGuardHome/releases/latest |
     grep tag_name | cut -d '"' -f4 | sed 's/v//')
 
+info "Installed version: $CURRENT_VERSION"
 info "Latest version: $LATEST_VERSION"
 
-if $CHECK_ONLY; then
-
-    echo
-    echo "Installed version: $CURRENT_VERSION"
-    echo "Latest version: $LATEST_VERSION"
-
-    exit 0
-
-fi
+if $CHECK_ONLY; then exit 0; fi
 
 if [[ "$CURRENT_VERSION" == "$LATEST_VERSION" && "$FORCE" = false ]]; then
     success "Already up to date"
@@ -375,30 +357,41 @@ ARCHIVE="AdGuardHome_linux_${ARCH}.tar.gz"
 run curl -L -o adguard.tar.gz "$BASE_URL/$ARCHIVE"
 run curl -L -o checksums.txt "$BASE_URL/AdGuardHome_checksums.txt"
 
-EXPECTED=$(grep "$ARCHIVE" checksums.txt | awk '{print $1}')
-DOWNLOADED=$(sha256sum adguard.tar.gz | awk '{print $1}')
+if ! $DRY_RUN; then
+    EXPECTED=$(grep "$ARCHIVE" checksums.txt | awk '{print $1}')
+    DOWNLOADED=$(sha256sum adguard.tar.gz | awk '{print $1}')
 
-if [[ "$EXPECTED" != "$DOWNLOADED" ]]; then
-    error "Checksum verification failed"
-    exit 1
+    if [[ "$EXPECTED" != "$DOWNLOADED" ]]; then
+        error "Checksum verification failed"
+        exit 1
+    fi
 fi
 
 success "Checksum valid"
 
-run tar xzf adguard.tar.gz
+if ! $DRY_RUN; then
+    tar xzf adguard.tar.gz
 
-NEW_BINARY="$TMP_DIR/AdGuardHome/AdGuardHome"
+    BINARY=$(find . -type f -name "AdGuardHome" | head -n1)
+
+    if [[ -z "$BINARY" ]]; then
+        error "Binary not found in archive"
+        exit 1
+    fi
+
+    info "Using binary: $BINARY"
+fi
 
 info "Stopping AdGuard Home"
 
 run systemctl stop AdGuardHome
-
 run cp "$INSTALL_DIR/AdGuardHome" "$INSTALL_DIR/AdGuardHome.backup"
 
 info "Installing new binary"
 
-run cp "$NEW_BINARY" "$INSTALL_DIR/AdGuardHome"
-run chmod +x "$INSTALL_DIR/AdGuardHome"
+if ! $DRY_RUN; then
+    install -m 0755 "$BINARY" "$INSTALL_DIR/AdGuardHome"
+fi
 
 run systemctl start AdGuardHome
 

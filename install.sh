@@ -180,13 +180,14 @@ echo "✔ latest version: $LATEST_VERSION"
 
 if [[ -f "$INSTALL_PATH" ]]; then
 
-    CURRENT_VERSION=$("$INSTALL_PATH" --version 2> /dev/null || echo "unknown")
+    CURRENT_VERSION=$("$INSTALL_PATH" --version 2> /dev/null | awk '{print $NF}' | sed 's/^v//' || echo "unknown")
+    LATEST_CLEAN=$(echo "$LATEST_VERSION" | sed 's/^v//')
 
     echo "✔ existing installation detected"
     echo "  installed: $CURRENT_VERSION"
     echo "  latest   : $LATEST_VERSION"
 
-    if [[ "$CURRENT_VERSION" == "$LATEST_VERSION" ]]; then
+    if [[ "$CURRENT_VERSION" == "$LATEST_CLEAN" ]]; then
         echo
         echo "Updater already up to date."
         exit 0
