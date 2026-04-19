@@ -181,13 +181,16 @@ echo "✔ latest version: $LATEST_VERSION"
 if [[ -f "$INSTALL_PATH" ]]; then
 
     CURRENT_VERSION=$("$INSTALL_PATH" --version 2> /dev/null | awk '{print $NF}' || echo "unknown")
+
+    # normalize versions (fixes v-prefix issue)
+    CURRENT_VERSION="${CURRENT_VERSION#v}"
     LATEST_CLEAN="${LATEST_VERSION#v}"
 
     echo "✔ existing installation detected"
     echo "  installed: $CURRENT_VERSION"
     echo "  latest   : $LATEST_VERSION"
 
-    if [[ "$CURRENT_VERSION" == "$LATEST_VERSION" ]]; then
+    if [[ "$CURRENT_VERSION" == "$LATEST_CLEAN" ]]; then
         echo
         echo "Updater already up to date."
         exit 0
