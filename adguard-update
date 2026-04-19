@@ -358,13 +358,23 @@ run curl -L -o adguard.tar.gz "$BASE_URL/$ARCHIVE"
 run curl -L -o checksums.txt "$BASE_URL/AdGuardHome_checksums.txt"
 
 if ! $DRY_RUN; then
-    EXPECTED=$(grep "$ARCHIVE" checksums.txt | awk '{print $1}')
+
+    EXPECTED=$(grep "$ARCHIVE" checksums.txt | awk '{print $1}' || true)
+
+    if [[ -z "$EXPECTED" ]]; then
+        error "Checksum entry not found for $ARCHIVE"
+        echo "Available checksums:"
+        cat checksums.txt
+        exit 1
+    fi
+
     DOWNLOADED=$(sha256sum adguard.tar.gz | awk '{print $1}')
 
     if [[ "$EXPECTED" != "$DOWNLOADED" ]]; then
         error "Checksum verification failed"
         exit 1
     fi
+
 fi
 
 success "Checksum valid"
