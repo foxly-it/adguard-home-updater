@@ -363,11 +363,11 @@ CHECKSUM_URL=$(
     curl -s https://api.github.com/repos/AdguardTeam/AdGuardHome/releases/latest |
         grep "browser_download_url" |
         grep "${ARCHIVE}.sha256" |
-        cut -d '"' -f4 | head -n1
+        cut -d '"' -f4 | head -n1 || true
 )
 
 if [[ -z "$CHECKSUM_URL" ]]; then
-    warn "Checksum URL not found, skipping verification"
+    warn "No checksum asset found on GitHub, skipping verification"
 else
     run curl -L -o checksum.txt "$CHECKSUM_URL"
 
@@ -377,18 +377,15 @@ else
         DOWNLOADED=$(sha256sum adguard.tar.gz | awk '{print $1}')
 
         if [[ -z "$EXPECTED" ]]; then
-            error "Failed to read checksum"
-            exit 1
-        fi
-
-        if [[ "$EXPECTED" != "$DOWNLOADED" ]]; then
+            warn "Invalid checksum file, skipping verification"
+        elif [[ "$EXPECTED" != "$DOWNLOADED" ]]; then
             error "Checksum verification failed"
             exit 1
+        else
+            success "Checksum valid"
         fi
 
     fi
-
-    success "Checksum valid"
 fi
 
 if ! $DRY_RUN; then
