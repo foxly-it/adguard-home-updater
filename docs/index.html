@@ -171,13 +171,22 @@ button {
 
 .terminal {
     background: #000;
-    color: #22c55e;
+    color: #d1d5db;
     padding: 15px;
     border-radius: 10px;
     font-family: monospace;
-    min-height: 160px;
+    min-height: 240px;
     white-space: pre-wrap;
+    line-height: 1.4;
 }
+
+/* CLI COLORS */
+
+.log-info { color: #3b82f6; }
+.log-ok { color: #22c55e; }
+.log-warn { color: #facc15; }
+.log-error { color: #ef4444; }
+.banner { color: #9ca3af; }
 
 /* FOOTER */
 
@@ -214,14 +223,12 @@ button {
     <h1>AdGuard Home Updater</h1>
 </div>
 
-<!-- BADGES -->
 <div class="badges">
     <span class="badge">✔ Secure</span>
     <span class="badge">✔ Open Source</span>
     <span class="badge">✔ ARM64 Ready</span>
 </div>
 
-<!-- STATS -->
 <div class="stats">
     <div class="stat-card">
         <div class="stat-icon">📦</div>
@@ -243,8 +250,7 @@ button {
 </div>
 
 <div class="card cta">
-    <h2 data-en="Install" data-de="Installation"></h2>
-
+    <h2>Install</h2>
     <div class="code" id="installCmd">
         curl -fsSL https://install.foxly.de/install.sh | sudo bash
         <button class="copy-btn" onclick="copyInstall()">Copy</button>
@@ -257,25 +263,13 @@ button {
 </div>
 
 <div class="footer">
-    <span data-en='
-        <a href="https://foxly.de/datenschutzerklaerung/">Privacy Policy</a> |
-        <a href="https://foxly.de/legal-notice/">Legal Notice</a>
-    ' data-de='
-        <a href="https://foxly.de/datenschutzerklaerung/">Datenschutzerklärung</a> |
-        <a href="https://foxly.de/legal-notice/">Impressum</a>
-    '></span>
+    <a href="https://foxly.de/datenschutzerklaerung/">Privacy Policy</a> |
+    <a href="https://foxly.de/legal-notice/">Legal Notice</a>
 </div>
 
 </div>
 
 <script>
-function setLang(lang) {
-    document.querySelectorAll("[data-en]").forEach(el => {
-        el.innerHTML = el.getAttribute("data-" + lang);
-    });
-}
-setLang("en");
-
 function toggleTheme() {
     const current = document.documentElement.getAttribute("data-theme");
     if (current === "dark") {
@@ -296,12 +290,12 @@ function copyInstall() {
     setTimeout(() => btn.innerText = "Copy", 1500);
 }
 
-// VERSION
+/* API DATA */
+
 fetch("https://api.github.com/repos/foxly-it/adguard-home-updater/releases/latest")
 .then(r => r.json())
 .then(d => document.getElementById("version").innerText = d.tag_name);
 
-// DOWNLOADS
 fetch("https://api.github.com/repos/foxly-it/adguard-home-updater/releases")
 .then(r => r.json())
 .then(data => {
@@ -310,38 +304,55 @@ fetch("https://api.github.com/repos/foxly-it/adguard-home-updater/releases")
     document.getElementById("downloads").innerText = total;
 });
 
-// AGH VERSION
 fetch("https://api.github.com/repos/AdguardTeam/AdGuardHome/releases/latest")
 .then(r => r.json())
 .then(d => document.getElementById("aghVersion").innerText = d.tag_name);
 
-// TERMINAL
-const lines = [
-    "Checking version...",
-    "Downloading update...",
-    "Verifying...",
-    "Installing...",
-    "Restarting service...",
-    "✔ Update successful"
+/* CLI */
+
+const terminal = document.getElementById("terminal");
+
+const sequence = [
+`<span class="banner">
+ █████╗ ██████╗  ██████╗ ██╗   ██╗ █████╗ ██████╗ ██████╗
+██╔══██╗██╔══██╗██╔════╝ ██║   ██║██╔══██╗██╔══██╗██╔══██╗
+███████║██║  ██║██║  ███╗██║   ██║███████║██████╔╝██║  ██║
+██╔══██║██║  ██║██║   ██║██║   ██║██╔══██║██╔══██╗██║  ██║
+██║  ██║██████╔╝╚██████╔╝╚██████╔╝██║  ██║██║  ██║██████╔╝
+╚═╝  ╚═╝╚═════╝  ╚═════╝  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝
+
+ AdGuard Home Updater
+ Foxly Infrastructure Tools
+</span>`,
+
+`<span class="log-info">[INFO]</span> Architecture detected: arm64`,
+`<span class="log-info">[INFO]</span> Installed version: 0.107.73`,
+`<span class="log-info">[INFO]</span> Latest version: 0.107.74`,
+`<span class="log-info">[INFO]</span> Downloading release...`,
+`Progress: [████████████████████] 100%`,
+`<span class="log-ok">[OK]</span> Checksum valid`,
+`<span class="log-info">[INFO]</span> Installing new binary`,
+`<span class="log-ok">[OK]</span> Update finished`
 ];
 
 let i = 0;
-let terminal = document.getElementById("terminal");
 
-function typeLine() {
-    if (i < lines.length) {
-        terminal.innerHTML += lines[i] + "\n";
+function runCLI() {
+    if (i < sequence.length) {
+        terminal.innerHTML += sequence[i] + "\n";
+        terminal.scrollTop = terminal.scrollHeight;
         i++;
-        setTimeout(typeLine, 600);
+        setTimeout(runCLI, 500);
     } else {
         setTimeout(() => {
             terminal.innerHTML = "";
             i = 0;
-            typeLine();
-        }, 3000);
+            runCLI();
+        }, 4000);
     }
 }
-typeLine();
+
+runCLI();
 </script>
 
 </body>
