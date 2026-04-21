@@ -359,10 +359,12 @@ run curl -L -o adguard.tar.gz "$BASE_URL/$ARCHIVE"
 # checksum validation via GitHub release assets
 # ---------------------------------------------------------
 
-CHECKSUM_URL=$(curl -s https://api.github.com/repos/AdguardTeam/AdGuardHome/releases/latest \
-    | grep "browser_download_url" \
-    | grep "${ARCHIVE}.sha256" \
-    | cut -d '"' -f4 | head -n1)
+CHECKSUM_URL=$(
+    curl -s https://api.github.com/repos/AdguardTeam/AdGuardHome/releases/latest |
+        grep "browser_download_url" |
+        grep "${ARCHIVE}.sha256" |
+        cut -d '"' -f4 | head -n1
+)
 
 if [[ -z "$CHECKSUM_URL" ]]; then
     warn "Checksum URL not found, skipping verification"
