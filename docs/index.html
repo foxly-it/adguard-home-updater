@@ -8,15 +8,15 @@
 <style>
 :root {
     --accent: #4CAF50;
-    --bg: #f6f8fa;
+    --bg: #f4f7f5;
     --card: #ffffff;
-    --text: #222;
-    --muted: #666;
+    --text: #1f2937;
+    --muted: #6b7280;
 }
 
 [data-theme="dark"] {
-    --bg: #0f1720;
-    --card: #1a2330;
+    --bg: #0b1220;
+    --card: #111827;
     --text: #e5e7eb;
     --muted: #9ca3af;
 }
@@ -34,18 +34,7 @@ body {
     padding: 30px 20px;
 }
 
-/* HEADER */
-
-.header {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.header img {
-    max-width: 320px;
-}
-
-/* TOP BAR */
+/* TOPBAR */
 
 .topbar {
     display: flex;
@@ -61,6 +50,75 @@ button {
     cursor: pointer;
 }
 
+[data-theme="dark"] button {
+    background: #1f2937;
+    color: #e5e7eb;
+}
+
+/* HEADER */
+
+.header {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.header img {
+    max-width: 320px;
+}
+
+/* BADGES */
+
+.badges {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.badge {
+    display: inline-block;
+    background: rgba(76,175,80,0.1);
+    color: var(--accent);
+    padding: 6px 10px;
+    border-radius: 999px;
+    margin: 4px;
+    font-size: 13px;
+}
+
+/* STATS */
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background: var(--card);
+    padding: 15px;
+    border-radius: 12px;
+    text-align: center;
+    transition: 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+}
+
+.stat-icon {
+    font-size: 22px;
+}
+
+.stat-title {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.stat-value {
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 5px;
+}
+
 /* CARDS */
 
 .card {
@@ -68,29 +126,36 @@ button {
     padding: 20px;
     border-radius: 12px;
     margin-bottom: 20px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    transition: 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-3px);
 }
 
 /* CTA */
 
 .cta {
     border: 2px solid var(--accent);
-    background: #eaf7ea;
-    transition: 0.3s;
+    background: rgba(76,175,80,0.08);
 }
 
 .cta:hover {
-    box-shadow: 0 0 20px rgba(76, 175, 80, 0.4);
+    box-shadow: 0 0 20px rgba(76,175,80,0.3);
 }
 
+/* CODE */
+
 .code {
-    background: #111;
-    color: #0f0;
+    background: #0f172a;
+    color: #22c55e;
     padding: 12px;
     border-radius: 8px;
     font-family: monospace;
     position: relative;
 }
+
+/* COPY */
 
 .copy-btn {
     position: absolute;
@@ -106,7 +171,7 @@ button {
 
 .terminal {
     background: #000;
-    color: #0f0;
+    color: #22c55e;
     padding: 15px;
     border-radius: 10px;
     font-family: monospace;
@@ -121,6 +186,12 @@ button {
     margin-top: 30px;
     color: var(--muted);
 }
+
+.footer a {
+    color: var(--accent);
+    text-decoration: none;
+    margin: 0 6px;
+}
 </style>
 </head>
 
@@ -133,7 +204,6 @@ button {
         <button onclick="setLang('en')">EN</button>
         <button onclick="setLang('de')">DE</button>
     </div>
-
     <div>
         <button onclick="toggleTheme()">🌙</button>
     </div>
@@ -142,8 +212,34 @@ button {
 <div class="header">
     <img src="https://github.com/foxly-it/adguard-home-updater/blob/main/assets/banner.png?raw=true">
     <h1>AdGuard Home Updater</h1>
-    <p id="version">Loading version...</p>
-    <p id="downloads">Loading installs...</p>
+</div>
+
+<!-- BADGES -->
+<div class="badges">
+    <span class="badge">✔ Secure</span>
+    <span class="badge">✔ Open Source</span>
+    <span class="badge">✔ ARM64 Ready</span>
+</div>
+
+<!-- STATS -->
+<div class="stats">
+    <div class="stat-card">
+        <div class="stat-icon">📦</div>
+        <div class="stat-title">Updater Version</div>
+        <div class="stat-value" id="version">...</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon">⬇️</div>
+        <div class="stat-title">Installs</div>
+        <div class="stat-value" id="downloads">...</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon">🛡️</div>
+        <div class="stat-title">AdGuard Latest</div>
+        <div class="stat-value" id="aghVersion">...</div>
+    </div>
 </div>
 
 <div class="card cta">
@@ -160,61 +256,34 @@ button {
     <div class="terminal" id="terminal"></div>
 </div>
 
-<div class="card">
-    <h2 data-en="Features" data-de="Funktionen"></h2>
-
-    <ul data-en="
-        <li>Automatic updates</li>
-        <li>Rollback protection</li>
-        <li>Checksum validation</li>
-        <li>DNS health check</li>
-    "
-    data-de="
-        <li>Automatische Updates</li>
-        <li>Rollback Schutz</li>
-        <li>Checksum Prüfung</li>
-        <li>DNS Health Check</li>
-    ">
-    </ul>
-</div>
-
 <div class="footer">
-    <a href="https://foxly.de/datenschutzerklaerung/">Privacy</a> |
-    <a href="https://foxly.de/legal-notice/">Imprint</a>
+    <span data-en='
+        <a href="https://foxly.de/datenschutzerklaerung/">Privacy Policy</a> |
+        <a href="https://foxly.de/legal-notice/">Legal Notice</a>
+    ' data-de='
+        <a href="https://foxly.de/datenschutzerklaerung/">Datenschutzerklärung</a> |
+        <a href="https://foxly.de/legal-notice/">Impressum</a>
+    '></span>
 </div>
 
 </div>
 
 <script>
-// ============================
-// LANGUAGE
-// ============================
-
 function setLang(lang) {
     document.querySelectorAll("[data-en]").forEach(el => {
         el.innerHTML = el.getAttribute("data-" + lang);
     });
 }
-
 setLang("en");
-
-// ============================
-// THEME
-// ============================
 
 function toggleTheme() {
     const current = document.documentElement.getAttribute("data-theme");
-
     if (current === "dark") {
         document.documentElement.removeAttribute("data-theme");
     } else {
         document.documentElement.setAttribute("data-theme", "dark");
     }
 }
-
-// ============================
-// COPY BUTTON
-// ============================
 
 function copyInstall() {
     const el = document.getElementById("installCmd");
@@ -224,47 +293,35 @@ function copyInstall() {
     navigator.clipboard.writeText(text);
 
     btn.innerText = "Copied ✓";
-
-    setTimeout(() => {
-        btn.innerText = "Copy";
-    }, 1500);
+    setTimeout(() => btn.innerText = "Copy", 1500);
 }
 
-// ============================
-// LIVE VERSION + DOWNLOADS
-// ============================
-
+// VERSION
 fetch("https://api.github.com/repos/foxly-it/adguard-home-updater/releases/latest")
 .then(r => r.json())
-.then(data => {
-    document.getElementById("version").innerText = "Version: " + data.tag_name;
-});
+.then(d => document.getElementById("version").innerText = d.tag_name);
 
+// DOWNLOADS
 fetch("https://api.github.com/repos/foxly-it/adguard-home-updater/releases")
 .then(r => r.json())
 .then(data => {
     let total = 0;
-
-    data.forEach(r => {
-        r.assets.forEach(a => total += a.download_count);
-    });
-
-    document.getElementById("downloads").innerText = "Installs: " + total;
+    data.forEach(r => r.assets.forEach(a => total += a.download_count));
+    document.getElementById("downloads").innerText = total;
 });
 
-// ============================
-// TERMINAL ANIMATION
-// ============================
+// AGH VERSION
+fetch("https://api.github.com/repos/AdguardTeam/AdGuardHome/releases/latest")
+.then(r => r.json())
+.then(d => document.getElementById("aghVersion").innerText = d.tag_name);
 
+// TERMINAL
 const lines = [
     "Checking version...",
-    "Latest version found",
-    "Downloading release...",
-    "Verifying checksum...",
-    "Stopping service...",
-    "Installing update...",
-    "Starting service...",
-    "Running DNS test...",
+    "Downloading update...",
+    "Verifying...",
+    "Installing...",
+    "Restarting service...",
     "✔ Update successful"
 ];
 
@@ -284,7 +341,6 @@ function typeLine() {
         }, 3000);
     }
 }
-
 typeLine();
 </script>
 
