@@ -335,12 +335,12 @@
             color: var(--terminal-text);
             border-radius: 12px;
             padding: 16px;
-            min-height: 270px;
+            height: 280px;              /* FIXED HEIGHT */
             font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
             font-size: 13px;
             line-height: 1.45;
             white-space: pre-wrap;
-            overflow: auto;
+            overflow: hidden;           /* verhindert Wachstum */
             border: 1px solid rgba(255,255,255,0.04);
         }
 
@@ -632,7 +632,17 @@
 
         const terminal = document.getElementById("terminal");
 
-        const sequence = [
+const terminal = document.getElementById("terminal");
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function runCLI() {
+    while (true) {
+        terminal.innerHTML = "";
+
+        const lines = [
 `<span class="banner">
  █████╗ ██████╗  ██████╗ ██╗   ██╗ █████╗ ██████╗ ██████╗
 ██╔══██╗██╔══██╗██╔════╝ ██║   ██║██╔══██╗██╔══██╗██╔══██╗
@@ -647,8 +657,27 @@
 `<span class="log-info">[INFO]</span> Architecture detected: arm64`,
 `<span class="log-info">[INFO]</span> Installed version: 0.107.73`,
 `<span class="log-info">[INFO]</span> Latest version: 0.107.74`,
-`<span class="log-info">[INFO]</span> Downloading release...`,
-`Progress: [████████████████████] 100%`,
+`<span class="log-info">[INFO]</span> Downloading release...`
+        ];
+
+        // normale Logs
+        for (let line of lines) {
+            terminal.innerHTML += line + "\n";
+            await sleep(350);
+        }
+
+        // 🔥 DYNAMISCHE PROGRESSBAR
+        let bar = "";
+        for (let i = 0; i <= 20; i++) {
+            bar = "█".repeat(i) + "░".repeat(20 - i);
+            terminal.innerHTML =
+                terminal.innerHTML.replace(/Progress:.*/, "") +
+                `Progress: [${bar}] ${i * 5}%\n`;
+
+            await sleep(90);
+        }
+
+        const endLines = [
 `<span class="log-info">[INFO]</span> Verifying checksum...`,
 `<span class="log-ok">[OK]</span> Checksum valid`,
 `<span class="log-info">[INFO]</span> Stopping AdGuard Home`,
@@ -658,6 +687,15 @@
 `<span class="log-ok">[OK]</span> DNS health check successful`,
 `<span class="log-ok">[OK]</span> Update finished`
         ];
+
+        for (let line of endLines) {
+            terminal.innerHTML += line + "\n";
+            await sleep(350);
+        }
+
+        await sleep(3000);
+    }
+}
 
         let cliIndex = 0;
 
