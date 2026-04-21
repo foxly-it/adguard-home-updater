@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,27 +7,21 @@
 
 <style>
 :root {
-    --bg: #0f141a;
-    --card: #1b222c;
-    --card-soft: #232c38;
-    --text: #e6edf3;
-    --muted: #9aa4b2;
+    --bg: #f5f7fa;
+    --card: #ffffff;
+    --soft: #f0f3f7;
+    --text: #1f2937;
+    --muted: #6b7280;
     --accent: #4caf50;
-    --border: #2f3945;
-}
-
-* {
-    box-sizing: border-box;
+    --border: #e5e7eb;
 }
 
 body {
     margin: 0;
     font-family: system-ui, -apple-system, sans-serif;
-    background: linear-gradient(180deg, #0f141a 0%, #121821 100%);
+    background: var(--bg);
     color: var(--text);
 }
-
-/* CONTAINER */
 
 .container {
     max-width: 900px;
@@ -45,7 +39,7 @@ body {
 .header img {
     width: 100%;
     max-width: 720px;
-    border-radius: 14px;
+    border-radius: 12px;
     margin-bottom: 20px;
 }
 
@@ -62,23 +56,21 @@ body {
 
 .lang-switch {
     position: absolute;
-    top: 20px;
+    top: 15px;
     right: 20px;
 }
 
 .lang-switch button {
-    background: var(--card);
     border: 1px solid var(--border);
-    color: var(--text);
+    background: white;
     padding: 6px 10px;
-    margin-left: 5px;
     border-radius: 6px;
     cursor: pointer;
 }
 
-.lang-switch button.active {
+.lang-switch .active {
     background: var(--accent);
-    color: #000;
+    color: white;
 }
 
 /* CARD */
@@ -86,20 +78,40 @@ body {
 .card {
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 22px;
+    border-radius: 12px;
+    padding: 20px;
     margin-bottom: 20px;
 }
 
 /* INSTALL */
 
-.install {
-    background: #0b0f14;
+.install-box {
+    background: #111;
+    color: #0f0;
     border-radius: 10px;
-    padding: 14px;
+    padding: 15px;
     font-family: monospace;
-    overflow-x: auto;
-    margin-top: 10px;
+    position: relative;
+}
+
+.copy-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 5px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+
+/* CTA */
+
+.cta {
+    border: 2px solid var(--accent);
+    background: #eaf7ea;
 }
 
 /* GRID */
@@ -110,31 +122,17 @@ body {
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
-/* FEATURE */
-
 .feature {
-    background: var(--card-soft);
-    border-radius: 12px;
-    padding: 16px;
-    border: 1px solid var(--border);
-}
-
-.feature h3 {
-    color: var(--accent);
-    font-size: 1rem;
-    margin-bottom: 5px;
-}
-
-.feature p {
-    font-size: 0.9rem;
-    color: var(--muted);
+    background: var(--soft);
+    padding: 15px;
+    border-radius: 10px;
 }
 
 /* FOOTER */
 
 .footer {
     text-align: center;
-    margin-top: 50px;
+    margin-top: 40px;
     font-size: 0.85rem;
     color: var(--muted);
 }
@@ -142,11 +140,18 @@ body {
 .footer a {
     color: var(--accent);
     text-decoration: none;
-    margin: 0 8px;
 }
 
-.footer a:hover {
-    text-decoration: underline;
+/* CLI SVG */
+
+.cli {
+    text-align: center;
+}
+
+.cli img {
+    max-width: 100%;
+    border-radius: 10px;
+    border: 1px solid var(--border);
 }
 
 </style>
@@ -155,8 +160,8 @@ body {
 <body>
 
 <div class="lang-switch">
-    <button onclick="setLang('de')" id="btn-de" class="active">DE</button>
-    <button onclick="setLang('en')" id="btn-en">EN</button>
+    <button onclick="setLang('en')" id="btn-en" class="active">EN</button>
+    <button onclick="setLang('de')" id="btn-de">DE</button>
 </div>
 
 <div class="container">
@@ -164,67 +169,65 @@ body {
     <!-- HEADER -->
     <div class="header">
         <img src="https://github.com/foxly-it/adguard-home-updater/blob/main/assets/banner.png?raw=true">
-        <h1 data-de="AdGuard Home Updater" data-en="AdGuard Home Updater"></h1>
-        <p data-de="Automatische, sichere Updates für Bare-Metal Installationen"
-           data-en="Safe and automated updates for bare-metal installations"></p>
+        <h1 data-en="AdGuard Home Updater" data-de="AdGuard Home Updater"></h1>
+        <p data-en="Safe and automated updates for bare-metal installations"
+           data-de="Automatische, sichere Updates für Bare-Metal Installationen"></p>
+
+        <p id="version" style="margin-top:10px; font-size:0.9rem; color:#6b7280;">
+            Loading version...
+        </p>
+    </div>
+
+    <!-- INSTALL CTA -->
+    <div class="card cta">
+        <strong data-en="Install in one command" data-de="Installation in einem Befehl"></strong>
+
+        <div class="install-box" id="installCmd">
+curl -fsSL https://install.foxly.de/install.sh | sudo bash
+            <button class="copy-btn" onclick="copyInstall()">Copy</button>
+        </div>
     </div>
 
     <!-- WHY -->
     <div class="card">
-        <p data-de="Warum dieses Tool?" data-en="Why this tool?"></p>
-        <p data-de="Der integrierte Updater funktioniert auf vielen ARM-Systemen nicht zuverlässig."
-           data-en="The built-in updater often fails on ARM systems."></p>
-        <p data-de="Dieses Script übernimmt den kompletten Update-Prozess inklusive Backup und Rollback."
-           data-en="This script handles updates including backup and rollback."></p>
-    </div>
-
-    <!-- INSTALL -->
-    <div class="card">
-        <p data-de="Installation" data-en="Installation"></p>
-        <div class="install">
-curl -fsSL https://install.foxly.de/install.sh | sudo bash
-        </div>
+        <p data-en="Why this tool?" data-de="Warum dieses Tool?"></p>
+        <p data-en="The built-in updater often fails on ARM systems."
+           data-de="Der integrierte Updater funktioniert auf ARM oft nicht zuverlässig."></p>
     </div>
 
     <!-- FEATURES -->
     <div class="card">
-        <p data-de="Features" data-en="Features"></p>
-
         <div class="grid">
-
             <div class="feature">
-                <h3>🔄 Auto Update</h3>
-                <p data-de="Erkennt neue Versionen automatisch"
-                   data-en="Detects new versions automatically"></p>
+                <strong>Auto Update</strong>
+                <p data-en="Detects new versions automatically"
+                   data-de="Erkennt neue Versionen automatisch"></p>
             </div>
 
             <div class="feature">
-                <h3>🛡 Rollback</h3>
-                <p data-de="Stellt alte Version bei Fehler wieder her"
-                   data-en="Restores previous version on failure"></p>
+                <strong>Rollback</strong>
+                <p data-en="Restores previous version"
+                   data-de="Rollback bei Fehlern"></p>
             </div>
 
             <div class="feature">
-                <h3>🔍 DNS Check</h3>
-                <p data-de="Prüft DNS Funktion nach Update"
-                   data-en="Verifies DNS after update"></p>
+                <strong>DNS Check</strong>
+                <p data-en="Verifies DNS after update"
+                   data-de="DNS Prüfung nach Update"></p>
             </div>
 
             <div class="feature">
-                <h3>🧪 Dry Run</h3>
-                <p data-de="Simulation ohne Änderungen"
-                   data-en="Simulation without changes"></p>
+                <strong>Dry Run</strong>
+                <p data-en="Simulation mode"
+                   data-de="Simulation ohne Änderungen"></p>
             </div>
-
         </div>
     </div>
 
-    <!-- EXAMPLE -->
-    <div class="card">
-        <p data-de="Test (Dry Run)" data-en="Test (Dry Run)"></p>
-        <div class="install">
-sudo adguard-update --dry-run
-        </div>
+    <!-- CLI PREVIEW -->
+    <div class="card cli">
+        <strong>CLI Preview</strong>
+        <img src="/assets/cli-demo.svg">
     </div>
 
     <!-- FOOTER -->
@@ -241,17 +244,32 @@ sudo adguard-update --dry-run
 
 <script>
 function setLang(lang) {
-    document.querySelectorAll("[data-de]").forEach(el => {
+    document.querySelectorAll("[data-en]").forEach(el => {
         el.textContent = el.getAttribute("data-" + lang);
     });
 
-    document.getElementById("btn-de").classList.remove("active");
     document.getElementById("btn-en").classList.remove("active");
-
+    document.getElementById("btn-de").classList.remove("active");
     document.getElementById("btn-" + lang).classList.add("active");
 }
 
-setLang('de');
+function copyInstall() {
+    const text = document.getElementById("installCmd").innerText.trim();
+    navigator.clipboard.writeText(text);
+}
+
+/* Live Version */
+fetch("https://api.github.com/repos/AdguardTeam/AdGuardHome/releases/latest")
+.then(r => r.json())
+.then(data => {
+    document.getElementById("version").innerText =
+        "Latest AdGuard Home: " + data.tag_name;
+})
+.catch(() => {
+    document.getElementById("version").innerText = "";
+});
+
+setLang("en");
 </script>
 
 </body>
