@@ -4,6 +4,18 @@
 
 # AdGuard Home Bare-Metal Updater
 
+---
+
+## 🌍 Language / Sprache
+
+- 🇬🇧 [English Version](#english)
+- 🇩🇪 [Deutsche Version](#deutsch)
+
+---
+
+<a id="english"></a>
+# 🇬🇧 English
+
 ![Release](https://img.shields.io/github/v/release/foxly-it/adguard-home-updater)
 ![Downloads](https://img.shields.io/github/downloads/foxly-it/adguard-home-updater/total)
 ![Shell](https://img.shields.io/badge/script-bash-green)
@@ -13,166 +25,42 @@
 
 Safe and automated updater for **AdGuard Home bare-metal installations**.
 
-This project provides a small but robust update utility for **AdGuard Home when installed directly on a Linux host without Docker**.
-
-It is designed for **homelab DNS infrastructure**, where reliability matters more than flashy features.
-
 ---
 
-# Why this project exists
-
-AdGuard Home includes a built-in updater that works well on **amd64 systems**.
-
-However, on many **ARM64 systems (e.g. Raspberry Pi)** the internal updater frequently fails and requests manual updates.
-
-Typical scenario:
-
-```
-Update available
-↓
-Download starts
-↓
-Installation fails
-↓
-Manual update required
-```
-
-For infrastructure services like DNS this becomes annoying quickly.
-
-This updater automates the entire process safely.
-
----
-
-# CLI Preview
-
-![AdGuard Home Updater CLI](assets/cli-preview.png)
-
-Example:
-
-```bash
-adguard-update --check
-```
-
-Dry-run update simulation:
-
-```bash
-sudo adguard-update --dry-run
-```
-
----
-
-# Quick Install
-
-Install the updater with a **single command**:
+## Quick Install
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/foxly-it/adguard-home-updater/main/install.sh | sudo bash
 ```
 
-The installer will automatically:
+---
 
-- install `adguard-update`
-- install systemd service
-- optionally enable automatic updates
-- verify download integrity
+## Features
+
+- Architecture detection (amd64 / arm64)
+- Automatic version check
+- Secure download with checksum validation (if available)
+- Binary backup + rollback
+- Dry-run mode
+- Self-update support
+- DNS health check with retry logic
+- systemd integration
 
 ---
 
-# Uninstall
-
-Remove the updater completely:
+## Usage
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/foxly-it/adguard-home-updater/main/install.sh | sudo bash -s uninstall
+sudo adguard-update
 ```
 
-This removes:
-
-- updater binary
-- systemd service
-- systemd timer
-
----
-
-# Non-interactive Install
-
-For automation tools like **Ansible or cloud-init**:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/foxly-it/adguard-home-updater/main/install.sh | sudo bash -s -- --no-interactive
-```
-
----
-
-# Quick Test (Dry-Run without installation)
-
-Run the updater **without installing it**:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/foxly-it/adguard-home-updater/main/adguard-update | sudo bash -s -- --dry-run
-```
-
-Check if an update is available:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/foxly-it/adguard-home-updater/main/adguard-update | sudo bash -s -- --check
-```
-
----
-
-# Features
-
-| Feature | Description |
-|---|---|
-| Architecture detection | Supports `amd64` and `arm64` |
-| Automatic version check | Compares installed version with latest upstream release |
-| Secure download | Verifies official SHA256 checksum |
-| Binary backup | Keeps previous binary |
-| Rollback protection | Restores old binary if service fails |
-| Dry-run mode | Simulates full update workflow |
-| Check mode | Shows if update is available |
-| Force update | Reinstalls even if version matches |
-| Self update | Updates the updater itself |
-| DNS health check | Verifies port 53 and performs DNS query test after update |
-| Lockfile protection | Prevents concurrent runs |
-| Logging | Writes logs to `/var/log/adguard-update.log` |
-| systemd integration | Supports automated update checks |
-
----
-
-# Usage
-
-## Status
-
-```bash
-adguard-update --status
-```
-
----
-
-## Check for update
+Check only:
 
 ```bash
 adguard-update --check
 ```
 
-Example output:
-
-```
-Installed version:
-  0.107.72
-
-Latest version:
-  0.107.73
-
-Status: update available
-```
-
----
-
-## Dry-run
-
-Simulate the update workflow:
+Dry-run:
 
 ```bash
 sudo adguard-update --dry-run
@@ -180,123 +68,149 @@ sudo adguard-update --dry-run
 
 ---
 
-## Normal update
+## Notes
 
+- Uses native binary control:
+  
 ```bash
-sudo adguard-update
+./AdGuardHome -s stop
+./AdGuardHome -s start
 ```
+
+- Avoids "binary busy" issues
+- Skips checksum validation if upstream does not provide one
 
 ---
 
-## Force update
-
-```bash
-sudo adguard-update --force
-```
-
----
-
-## Update the updater
-
-```bash
-sudo adguard-update --self-update
-```
-
----
-
-# Update Workflow
-
-```
-Version Check
-      ↓
-Download Release
-      ↓
-Download SHA256 File
-      ↓
-Verify Checksum
-      ↓
-Extract Archive
-      ↓
-Stop AdGuard Home
-      ↓
-Backup Current Binary
-      ↓
-Install New Binary
-      ↓
-Start AdGuard Home
-      ↓
-DNS Health Check
-      ↓
-Rollback on Failure
-```
-
-This keeps the process **simple, auditable and safe for infrastructure services**.
-
----
-
-# Logging
-
-All activity is written to:
+## Logging
 
 ```
 /var/log/adguard-update.log
 ```
 
-Example:
+---
 
+## Troubleshooting
+
+### DNS check fails
+
+```bash
+dig @127.0.0.1 google.com
 ```
-2026-03-11 03:10:01 - Architecture detected: arm64
-2026-03-11 03:10:01 - Installed version: 0.107.72
-2026-03-11 03:10:01 - Latest version: 0.107.73
-2026-03-11 03:10:02 - Downloading release
-2026-03-11 03:10:03 - Verifying checksum
-2026-03-11 03:10:04 - Installing new binary
-2026-03-11 03:10:05 - Update successful
+
+### Binary busy
+
+```bash
+cd /opt/AdGuardHome
+./AdGuardHome -s stop
 ```
 
 ---
 
-# systemd Automation
+<a id="deutsch"></a>
+# 🇩🇪 Deutsch
 
-The installer can configure a **systemd timer** for automatic update checks.
+Sicherer und automatisierter Updater für **AdGuard Home Bare-Metal Installationen**.
 
-Check timer status:
+Dieses Tool richtet sich speziell an **Homelab- und Infrastruktur-Setups**, bei denen Stabilität entscheidend ist.
 
-```bash
-systemctl status adguard-update.timer
-```
+---
 
-Manual run:
-
-```bash
-systemctl start adguard-update.service
-```
-
-List timers:
+## 🚀 Schnellinstallation
 
 ```bash
-systemctl list-timers | grep adguard
+curl -fsSL https://raw.githubusercontent.com/foxly-it/adguard-home-updater/main/install.sh | sudo bash
 ```
 
 ---
 
-# Security
+## ⚙️ Features
 
-The installer verifies the integrity of downloaded files using **SHA256 checksums**.
-
-Each release includes:
-
-```
-adguard-update
-adguard-update.sha256
-checksums.txt
-```
-
-This protects against corrupted downloads or supply-chain attacks.
+- Architektur-Erkennung (amd64 / arm64)
+- Automatische Versionsprüfung
+- Sicherer Download mit Checksum-Prüfung (falls vorhanden)
+- Backup der bestehenden Binary
+- Automatischer Rollback bei Fehlern
+- Dry-Run Modus
+- Self-Update Funktion
+- DNS Health Check mit Retry-Logik
+- systemd Integration
 
 ---
 
-# Example Homelab Architecture
+## 🧠 Verwendung
+
+Normales Update:
+
+```bash
+sudo adguard-update
+```
+
+Nur prüfen:
+
+```bash
+adguard-update --check
+```
+
+Simulation:
+
+```bash
+sudo adguard-update --dry-run
+```
+
+---
+
+## 🛠️ Technische Hinweise
+
+Das Script nutzt bewusst **keinen systemctl Stop**, sondern:
+
+```bash
+cd /opt/AdGuardHome
+./AdGuardHome -s stop
+```
+
+→ verhindert „binary busy“ Fehler beim Update.
+
+---
+
+## 🧾 Logging
+
+Alle Aktionen werden hier gespeichert:
+
+```
+/var/log/adguard-update.log
+```
+
+---
+
+## 🧯 Fehlerbehebung
+
+### DNS Test schlägt fehl
+
+```bash
+dig @127.0.0.1 google.com
+```
+
+---
+
+### Binary lässt sich nicht überschreiben
+
+```bash
+cd /opt/AdGuardHome
+./AdGuardHome -s stop
+```
+
+---
+
+### Keine Checksum verfügbar
+
+Einige Releases enthalten keine `.sha256` Datei.
+
+→ Der Updater überspringt dann die Verifikation automatisch.
+
+---
+
+## 📦 Beispiel Setup
 
 ```
 Clients
@@ -305,65 +219,19 @@ AdGuard Home
    ↓
 Unbound
    ↓
-Internet DNS hierarchy
-```
-
-Updater integration:
-
-```
-AdGuard Home
-     │
-     └── adguard-update
-           ├─ version check
-           ├─ secure download
-           ├─ checksum verification
-           ├─ binary replacement
-           └─ rollback protection
+Internet
 ```
 
 ---
 
-# Requirements
-
-- Linux host
-- systemd
-- root privileges
-- internet access
-
-AdGuard Home installed in:
-
-```
-/opt/AdGuardHome
-```
-
-Required utilities (usually already available):
-
-```
-curl
-tar
-sha256sum
-systemctl
-ss
-```
-
----
-
-# Contributing
-
-Contributions, ideas and improvements are welcome.
-
-Please open an issue or submit a pull request.
-
----
-
-# License
+## 📜 Lizenz
 
 MIT License
 
 ---
 
-# Disclaimer
+## ⚠️ Hinweis
 
-This project is **not affiliated with AdGuard**.
+Dieses Projekt ist **nicht offiziell von AdGuard**.
 
-Use at your own risk.
+Nutzung auf eigene Verantwortung.
