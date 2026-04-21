@@ -355,9 +355,6 @@ cd "$TMP_DIR"
 ARCHIVE="AdGuardHome_linux_${ARCH}.tar.gz"
 
 run curl -L -o adguard.tar.gz "$BASE_URL/$ARCHIVE"
-# ---------------------------------------------------------
-# checksum validation via GitHub release assets
-# ---------------------------------------------------------
 
 CHECKSUM_URL=$(
     curl -s https://api.github.com/repos/AdguardTeam/AdGuardHome/releases/latest |
@@ -373,7 +370,7 @@ else
 
     if ! $DRY_RUN; then
 
-        EXPECTED=$(awk '{print $1}' checksum.txt)
+        EXPECTED=$(awk '{print $1}' checksum.txt | tr -d '\r\n')
         DOWNLOADED=$(sha256sum adguard.tar.gz | awk '{print $1}')
 
         if [[ -z "$EXPECTED" ]]; then
@@ -403,7 +400,7 @@ fi
 
 info "Stopping AdGuard Home"
 
-run systemctl stop AdGuardHome
+run "$INSTALL_DIR/AdGuardHome" -s stop || true
 run cp "$INSTALL_DIR/AdGuardHome" "$INSTALL_DIR/AdGuardHome.backup"
 
 info "Installing new binary"
@@ -412,9 +409,27 @@ if ! $DRY_RUN; then
     install -m 0755 "$BINARY" "$INSTALL_DIR/AdGuardHome"
 fi
 
-run systemctl start AdGuardHome
+run "$INSTALL_DIR/AdGuardHome" -s start
 
-sleep 3
+for i in {1..10}; do
+    if systemctl is-active --quiet AdGuardHome && dig @127.0.0.1 google.com +short > /dev/null 2>&1; then
+        success "DNS health check successful"
+        break
+    fi
+    sleep 2
+done
+
+if ! dig @127.0.0.1 google.com +short > /dev/null 2>&1; then
+    error "DNS query test failed"
+    error "Service failed — rolling back"
+
+    "$INSTALL_DIR/AdGuardHome" -s stop || true
+    cp "$INSTALL_DIR/AdGuardHome.backup" "$INSTALL_DIR/AdGuardHome"
+    chmod +x "$INSTALL_DIR/AdGuardHome"
+    "$INSTALL_DIR/AdGuardHome" -s start
+
+    exit 1
+fi
 
 if $DRY_RUN; then
     warn "Dry run completed"
@@ -426,8 +441,9 @@ else
 
         error "Service failed — rolling back"
 
+        "$INSTALL_DIR/AdGuardHome" -s stop || true
         cp "$INSTALL_DIR/AdGuardHome.backup" "$INSTALL_DIR/AdGuardHome"
-        systemctl start AdGuardHome
+        "$INSTALL_DIR/AdGuardHome" -s start
 
         exit 1
 
