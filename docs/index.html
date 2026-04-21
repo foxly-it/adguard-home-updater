@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AdGuard Home Updater</title>
 
+    <meta name="description" content="Safe and automated AdGuard Home updates for bare-metal installations on Linux and ARM systems.">
+    <meta property="og:title" content="AdGuard Home Updater">
+    <meta property="og:description" content="Safe and automated AdGuard Home updates for bare-metal installations.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://github.com/foxly-it/adguard-home-updater/blob/main/assets/banner.png?raw=true">
+
     <style>
         :root {
             --accent: #67b279;
@@ -215,7 +221,9 @@
         }
 
         .cta:hover {
-            box-shadow: 0 0 0 1px rgba(103, 178, 121, 0.2), 0 0 24px rgba(103, 178, 121, 0.18);
+            box-shadow:
+                0 0 0 1px rgba(103, 178, 121, 0.2),
+                0 0 24px rgba(103, 178, 121, 0.18);
         }
 
         .install-options {
@@ -252,6 +260,9 @@
             padding: 14px;
             overflow: hidden;
             flex-wrap: wrap;
+            box-shadow:
+                0 0 0 1px rgba(103, 178, 121, 0.25),
+                0 0 20px rgba(103, 178, 121, 0.12);
         }
 
         .install-box code {
@@ -290,6 +301,12 @@
         }
 
         .install-hint {
+            margin-top: 10px;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .install-trust {
             margin-top: 10px;
             font-size: 13px;
             color: var(--muted);
@@ -448,6 +465,14 @@
             >
                 Your browser system may differ from your target system.
             </div>
+
+            <div
+                class="install-trust"
+                data-en="Used in homelab environments with ARM (Raspberry Pi) and x86 infrastructure."
+                data-de="Eingesetzt in Homelab-Umgebungen mit ARM (Raspberry Pi) und x86-Infrastruktur."
+            >
+                Used in homelab environments with ARM (Raspberry Pi) and x86 infrastructure.
+            </div>
         </div>
 
         <div class="grid-2">
@@ -566,7 +591,7 @@
             try {
                 const r = await fetch("https://api.github.com/repos/foxly-it/adguard-home-updater/releases/latest");
                 const d = await r.json();
-                document.getElementById("updaterVersion").textContent = d.tag_name || "...";
+                document.getElementById("updaterVersion").textContent = d.tag_name || "latest";
             } catch {
                 document.getElementById("updaterVersion").textContent = "n/a";
             }
@@ -589,7 +614,7 @@
                     });
                 }
 
-                document.getElementById("installCount").textContent = total.toString();
+                document.getElementById("installCount").textContent = total.toLocaleString();
             } catch {
                 document.getElementById("installCount").textContent = "n/a";
             }
