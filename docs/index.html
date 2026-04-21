@@ -7,13 +7,13 @@
 
 <style>
 :root {
-    --bg: #0d1117;
-    --card: #161b22;
-    --card-soft: #1c2128;
+    --bg: #0f141a;
+    --card: #1b222c;
+    --card-soft: #232c38;
     --text: #e6edf3;
-    --muted: #8b949e;
-    --accent: #3fb950;
-    --border: #30363d;
+    --muted: #9aa4b2;
+    --accent: #4caf50;
+    --border: #2f3945;
 }
 
 * {
@@ -23,9 +23,11 @@
 body {
     margin: 0;
     font-family: system-ui, -apple-system, sans-serif;
-    background: var(--bg);
+    background: linear-gradient(180deg, #0f141a 0%, #121821 100%);
     color: var(--text);
 }
+
+/* CONTAINER */
 
 .container {
     max-width: 900px;
@@ -33,29 +35,50 @@ body {
     padding: 40px 20px;
 }
 
-/* HERO */
+/* HEADER */
 
-.hero {
+.header {
     text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: 30px;
 }
 
-.hero img {
+.header img {
     width: 100%;
     max-width: 720px;
     border-radius: 14px;
     margin-bottom: 20px;
 }
 
-.hero h1 {
+.header h1 {
     font-size: 2rem;
     margin-bottom: 10px;
 }
 
-.hero p {
+.header p {
     color: var(--muted);
-    max-width: 600px;
-    margin: auto;
+}
+
+/* LANGUAGE SWITCH */
+
+.lang-switch {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+.lang-switch button {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 10px;
+    margin-left: 5px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.lang-switch button.active {
+    background: var(--accent);
+    color: #000;
 }
 
 /* CARD */
@@ -107,18 +130,6 @@ body {
     color: var(--muted);
 }
 
-/* WORKFLOW */
-
-.workflow {
-    font-family: monospace;
-    font-size: 0.9rem;
-    color: var(--muted);
-    background: #0b0f14;
-    padding: 15px;
-    border-radius: 10px;
-    white-space: pre-line;
-}
-
 /* FOOTER */
 
 .footer {
@@ -143,33 +154,33 @@ body {
 
 <body>
 
+<div class="lang-switch">
+    <button onclick="setLang('de')" id="btn-de" class="active">DE</button>
+    <button onclick="setLang('en')" id="btn-en">EN</button>
+</div>
+
 <div class="container">
 
-    <!-- HERO -->
-    <div class="hero">
-        <img src="/assets/banner.png" alt="AdGuard Home Updater">
-        <h1>AdGuard Home Updater</h1>
-        <p>
-            Automatisierte, sichere Updates für AdGuard Home –
-            speziell für Bare-Metal Installationen und Homelabs.
-        </p>
+    <!-- HEADER -->
+    <div class="header">
+        <img src="https://github.com/foxly-it/adguard-home-updater/blob/main/assets/banner.png?raw=true">
+        <h1 data-de="AdGuard Home Updater" data-en="AdGuard Home Updater"></h1>
+        <p data-de="Automatische, sichere Updates für Bare-Metal Installationen"
+           data-en="Safe and automated updates for bare-metal installations"></p>
     </div>
 
     <!-- WHY -->
     <div class="card">
-        <p><strong>Warum dieses Tool?</strong></p>
-        <p>
-            Der integrierte Updater von AdGuard Home funktioniert nicht auf allen Systemen zuverlässig –
-            insbesondere auf ARM64-Systemen.
-        </p>
-        <p>
-            Dieses Script übernimmt den kompletten Update-Prozess inklusive Backup, Verifikation und Rollback.
-        </p>
+        <p data-de="Warum dieses Tool?" data-en="Why this tool?"></p>
+        <p data-de="Der integrierte Updater funktioniert auf vielen ARM-Systemen nicht zuverlässig."
+           data-en="The built-in updater often fails on ARM systems."></p>
+        <p data-de="Dieses Script übernimmt den kompletten Update-Prozess inklusive Backup und Rollback."
+           data-en="This script handles updates including backup and rollback."></p>
     </div>
 
     <!-- INSTALL -->
     <div class="card">
-        <p><strong>Installation</strong></p>
+        <p data-de="Installation" data-en="Installation"></p>
         <div class="install">
 curl -fsSL https://install.foxly.de/install.sh | sudo bash
         </div>
@@ -177,53 +188,40 @@ curl -fsSL https://install.foxly.de/install.sh | sudo bash
 
     <!-- FEATURES -->
     <div class="card">
-        <p><strong>Features</strong></p>
+        <p data-de="Features" data-en="Features"></p>
 
         <div class="grid">
 
             <div class="feature">
-                <h3>🔄 Automatische Updates</h3>
-                <p>Erkennt neue Versionen und installiert sie sicher.</p>
+                <h3>🔄 Auto Update</h3>
+                <p data-de="Erkennt neue Versionen automatisch"
+                   data-en="Detects new versions automatically"></p>
             </div>
 
             <div class="feature">
                 <h3>🛡 Rollback</h3>
-                <p>Fehlgeschlagene Updates werden automatisch rückgängig gemacht.</p>
+                <p data-de="Stellt alte Version bei Fehler wieder her"
+                   data-en="Restores previous version on failure"></p>
             </div>
 
             <div class="feature">
-                <h3>🔍 DNS Health Check</h3>
-                <p>Überprüft nach dem Update die Funktion des DNS.</p>
+                <h3>🔍 DNS Check</h3>
+                <p data-de="Prüft DNS Funktion nach Update"
+                   data-en="Verifies DNS after update"></p>
             </div>
 
             <div class="feature">
                 <h3>🧪 Dry Run</h3>
-                <p>Simuliert Updates ohne Änderungen am System.</p>
+                <p data-de="Simulation ohne Änderungen"
+                   data-en="Simulation without changes"></p>
             </div>
 
-        </div>
-    </div>
-
-    <!-- WORKFLOW -->
-    <div class="card">
-        <p><strong>Update Ablauf</strong></p>
-
-        <div class="workflow">
-Version prüfen
-→ Release herunterladen
-→ Binary extrahieren
-→ AdGuard stoppen
-→ Backup erstellen
-→ Neue Version installieren
-→ DNS prüfen
-→ ggf. Rollback
         </div>
     </div>
 
     <!-- EXAMPLE -->
     <div class="card">
-        <p><strong>Test (Dry Run)</strong></p>
-
+        <p data-de="Test (Dry Run)" data-en="Test (Dry Run)"></p>
         <div class="install">
 sudo adguard-update --dry-run
         </div>
@@ -240,6 +238,21 @@ sudo adguard-update --dry-run
     </div>
 
 </div>
+
+<script>
+function setLang(lang) {
+    document.querySelectorAll("[data-de]").forEach(el => {
+        el.textContent = el.getAttribute("data-" + lang);
+    });
+
+    document.getElementById("btn-de").classList.remove("active");
+    document.getElementById("btn-en").classList.remove("active");
+
+    document.getElementById("btn-" + lang).classList.add("active");
+}
+
+setLang('de');
+</script>
 
 </body>
 </html>
