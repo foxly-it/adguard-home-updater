@@ -1,318 +1,613 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>AdGuard Home Updater</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdGuard Home Updater</title>
 
-<style>
-:root {
-    --accent: #4CAF50;
-    --bg: #f4f7f5;
-    --card: #ffffff;
-    --text: #1f2937;
-    --muted: #6b7280;
-}
+    <style>
+        :root {
+            --accent: #67b279;
+            --accent-strong: #4d9b61;
 
-[data-theme="dark"] {
-    --bg: #0b1220;
-    --card: #111827;
-    --text: #e5e7eb;
-    --muted: #9ca3af;
-}
+            /* light */
+            --bg: #f4f8f5;
+            --bg-soft: #eef5ef;
+            --card: #ffffff;
+            --card-soft: #f8fbf8;
+            --border: #dce7dd;
+            --text: #1f2937;
+            --muted: #6b7280;
+            --terminal-bg: #101418;
+            --terminal-text: #d1d5db;
+            --terminal-info: #60a5fa;
+            --terminal-ok: #4ade80;
+            --terminal-warn: #facc15;
+            --terminal-error: #f87171;
+        }
 
-body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: var(--bg);
-    color: var(--text);
-}
+        body.dark {
+            --accent: #6bcf7b;
+            --accent-strong: #58b568;
 
-.container {
-    max-width: 900px;
-    margin: auto;
-    padding: 30px 20px;
-}
+            /* dark */
+            --bg: #10161c;
+            --bg-soft: #151d25;
+            --card: #18212b;
+            --card-soft: #1d2732;
+            --border: #2c3946;
+            --text: #e5e7eb;
+            --muted: #9ca3af;
+            --terminal-bg: #0a0d11;
+            --terminal-text: #d1d5db;
+            --terminal-info: #60a5fa;
+            --terminal-ok: #4ade80;
+            --terminal-warn: #facc15;
+            --terminal-error: #f87171;
+        }
 
-/* TOPBAR */
+        * {
+            box-sizing: border-box;
+        }
 
-.topbar {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 10px;
-}
+        html, body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
 
-button {
-    border: none;
-    background: #e5e7eb;
-    padding: 6px 10px;
-    border-radius: 6px;
-    cursor: pointer;
-}
+        .container {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 28px 20px 40px;
+        }
 
-[data-theme="dark"] button {
-    background: #1f2937;
-    color: #e5e7eb;
-}
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
 
-/* HEADER */
+        .toolbar-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
 
-.header {
-    text-align: center;
-    margin-bottom: 15px;
-}
+        .toolbar-btn {
+            appearance: none;
+            border: 1px solid var(--border);
+            background: var(--card);
+            color: var(--text);
+            padding: 8px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: 0.2s ease;
+        }
 
-.header img {
-    max-width: 320px;
-}
+        .toolbar-btn:hover {
+            border-color: var(--accent);
+            transform: translateY(-1px);
+        }
 
-/* BADGES */
+        .toolbar-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
 
-.badges {
-    text-align: center;
-    margin-bottom: 20px;
-}
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
 
-.badge {
-    display: inline-block;
-    background: rgba(76,175,80,0.1);
-    color: var(--accent);
-    padding: 6px 10px;
-    border-radius: 999px;
-    margin: 4px;
-    font-size: 13px;
-}
+        .header img {
+            width: 100%;
+            max-width: 420px;
+            height: auto;
+            display: inline-block;
+            margin-bottom: 12px;
+        }
 
-/* STATS */
+        .header h1 {
+            margin: 0 0 8px;
+            font-size: 2rem;
+            line-height: 1.15;
+        }
 
-.stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 15px;
-    margin-bottom: 20px;
-}
+        .header p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 1rem;
+        }
 
-.stat-card {
-    background: var(--card);
-    padding: 15px;
-    border-radius: 12px;
-    text-align: center;
-    transition: 0.2s ease;
-}
+        .badges {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 22px 0 24px;
+        }
 
-.stat-card:hover {
-    transform: translateY(-4px);
-}
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: var(--bg-soft);
+            border: 1px solid var(--border);
+            color: var(--accent-strong);
+            font-size: 13px;
+            font-weight: 600;
+        }
 
-.stat-icon {
-    font-size: 22px;
-}
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
 
-.stat-title {
-    font-size: 12px;
-    color: var(--muted);
-}
+        .stat-card,
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.04);
+            transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+        }
 
-.stat-value {
-    font-size: 20px;
-    font-weight: bold;
-    margin-top: 5px;
-}
+        .stat-card:hover,
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+            border-color: rgba(103, 178, 121, 0.45);
+        }
 
-/* CARDS */
+        .stat-card {
+            padding: 18px 16px;
+            text-align: center;
+        }
 
-.card {
-    background: var(--card);
-    padding: 20px;
-    border-radius: 12px;
-    margin-bottom: 20px;
-    transition: 0.2s ease;
-}
+        .stat-icon {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
 
-.card:hover {
-    transform: translateY(-3px);
-}
+        .stat-title {
+            font-size: 12px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 6px;
+        }
 
-/* CTA */
+        .stat-value {
+            font-size: 1.35rem;
+            font-weight: 700;
+            word-break: break-word;
+        }
 
-.cta {
-    border: 2px solid var(--accent);
-    background: rgba(76,175,80,0.08);
-}
+        .card {
+            padding: 22px;
+            margin-bottom: 20px;
+        }
 
-.cta:hover {
-    box-shadow: 0 0 20px rgba(76,175,80,0.3);
-}
+        .card h2 {
+            margin: 0 0 14px;
+            font-size: 1.2rem;
+        }
 
-/* CODE */
+        .card p {
+            margin: 0 0 10px;
+            color: var(--muted);
+        }
 
-.code {
-    background: #0f172a;
-    color: #22c55e;
-    padding: 12px;
-    border-radius: 8px;
-    font-family: monospace;
-    position: relative;
-}
+        .cta {
+            background: linear-gradient(180deg, var(--card) 0%, var(--bg-soft) 100%);
+            border: 2px solid rgba(103, 178, 121, 0.35);
+        }
 
-/* COPY */
+        .cta:hover {
+            box-shadow: 0 0 0 1px rgba(103, 178, 121, 0.2), 0 0 24px rgba(103, 178, 121, 0.18);
+        }
 
-.copy-btn {
-    position: absolute;
-    right: 10px;
-    top: 10px;
-    background: var(--accent);
-    color: white;
-    padding: 4px 10px;
-    border-radius: 6px;
-}
+        .install-options {
+            margin-bottom: 12px;
+        }
 
-/* TERMINAL */
+        .install-options label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: var(--muted);
+        }
 
-.terminal {
-    background: #000;
-    color: #d1d5db;
-    padding: 15px;
-    border-radius: 10px;
-    font-family: monospace;
-    min-height: 240px;
-    white-space: pre-wrap;
-    line-height: 1.4;
-}
+        .install-options select {
+            width: 100%;
+            max-width: 320px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--card-soft);
+            color: var(--text);
+            font-size: 14px;
+            outline: none;
+        }
 
-/* CLI COLORS */
+        .install-box {
+            position: relative;
+            display: flex;
+            align-items: stretch;
+            gap: 10px;
+            background: #0f172a;
+            color: #22c55e;
+            border-radius: 12px;
+            padding: 14px;
+            overflow: hidden;
+            flex-wrap: wrap;
+        }
 
-.log-info { color: #3b82f6; }
-.log-ok { color: #22c55e; }
-.log-warn { color: #facc15; }
-.log-error { color: #ef4444; }
-.banner { color: #9ca3af; }
+        .install-box code {
+            flex: 1 1 420px;
+            min-width: 0;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
 
-/* FOOTER */
+        .copy-btn {
+            align-self: flex-start;
+            appearance: none;
+            border: none;
+            background: var(--accent);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: 0.2s ease;
+        }
 
-.footer {
-    text-align: center;
-    margin-top: 30px;
-    color: var(--muted);
-}
+        .copy-btn:hover {
+            background: var(--accent-strong);
+        }
 
-.footer a {
-    color: var(--accent);
-    text-decoration: none;
-    margin: 0 6px;
-}
-</style>
+        .copy-feedback {
+            min-height: 18px;
+            margin-top: 10px;
+            font-size: 13px;
+            color: var(--accent-strong);
+        }
+
+        .install-hint {
+            margin-top: 10px;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 16px;
+        }
+
+        .mini-card {
+            background: var(--card-soft);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+        }
+
+        .mini-card strong {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .terminal {
+            background: var(--terminal-bg);
+            color: var(--terminal-text);
+            border-radius: 12px;
+            padding: 16px;
+            min-height: 270px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 13px;
+            line-height: 1.45;
+            white-space: pre-wrap;
+            overflow: auto;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+
+        .log-info { color: var(--terminal-info); }
+        .log-ok { color: var(--terminal-ok); }
+        .log-warn { color: var(--terminal-warn); }
+        .log-error { color: var(--terminal-error); }
+        .banner { color: #9ca3af; }
+
+        .footer {
+            text-align: center;
+            margin-top: 28px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .footer a {
+            color: var(--accent-strong);
+            text-decoration: none;
+            margin: 0 6px;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 640px) {
+            .topbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .toolbar-group {
+                justify-content: center;
+            }
+
+            .header h1 {
+                font-size: 1.7rem;
+            }
+
+            .card,
+            .stat-card {
+                border-radius: 14px;
+            }
+        }
+    </style>
 </head>
-
 <body>
+    <div class="container">
 
-<div class="container">
+        <div class="topbar">
+            <div class="toolbar-group">
+                <button class="toolbar-btn active" id="btn-en" onclick="setLang('en')">EN</button>
+                <button class="toolbar-btn" id="btn-de" onclick="setLang('de')">DE</button>
+            </div>
 
-<div class="topbar">
-    <div>
-        <button onclick="setLang('en')">EN</button>
-        <button onclick="setLang('de')">DE</button>
+            <div class="toolbar-group">
+                <button class="toolbar-btn" id="themeToggle" onclick="toggleTheme()">🌙</button>
+            </div>
+        </div>
+
+        <div class="header">
+            <img src="https://github.com/foxly-it/adguard-home-updater/blob/main/assets/banner.png?raw=true" alt="AdGuard Home Updater Banner">
+            <h1 data-en="AdGuard Home Updater" data-de="AdGuard Home Updater">AdGuard Home Updater</h1>
+            <p
+                data-en="Safe and automated updates for bare-metal installations."
+                data-de="Sichere und automatisierte Updates für Bare-Metal Installationen."
+            >
+                Safe and automated updates for bare-metal installations.
+            </p>
+        </div>
+
+        <div class="badges">
+            <span class="badge">✔ Secure</span>
+            <span class="badge">✔ Open Source</span>
+            <span class="badge">✔ ARM64 Ready</span>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-icon">📦</div>
+                <div class="stat-title" data-en="Updater Version" data-de="Updater Version">Updater Version</div>
+                <div class="stat-value" id="updaterVersion">...</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">⬇️</div>
+                <div class="stat-title" data-en="Installs" data-de="Installationen">Installs</div>
+                <div class="stat-value" id="installCount">...</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">🛡️</div>
+                <div class="stat-title" data-en="AdGuard Latest" data-de="AdGuard Aktuell">AdGuard Latest</div>
+                <div class="stat-value" id="aghVersion">...</div>
+            </div>
+        </div>
+
+        <div class="card cta">
+            <h2 data-en="Install" data-de="Installation">Install</h2>
+
+            <div class="install-options">
+                <label for="targetSystem" data-en="Target system:" data-de="Zielsystem:">Target system:</label>
+                <select id="targetSystem" onchange="updateInstallCmd()">
+                    <option value="linux">Linux (recommended)</option>
+                    <option value="arm">Linux (ARM / Raspberry Pi)</option>
+                    <option value="mac">macOS (testing only)</option>
+                </select>
+            </div>
+
+            <div class="install-box">
+                <code id="installCmd">curl -fsSL https://install.foxly.de/install.sh | sudo bash</code>
+                <button class="copy-btn" id="copyBtn" onclick="copyInstall()">Copy</button>
+            </div>
+
+            <div class="copy-feedback" id="copyFeedback"></div>
+
+            <div
+                class="install-hint"
+                data-en="Your browser system may differ from your target system."
+                data-de="Dein Browser-System kann vom Zielsystem abweichen."
+            >
+                Your browser system may differ from your target system.
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <h2 data-en="Why this tool?" data-de="Warum dieses Tool?">Why this tool?</h2>
+                <p
+                    data-en="The built-in updater often fails on ARM systems. This script handles download, replacement, validation and rollback in a predictable way."
+                    data-de="Der integrierte Updater schlägt auf ARM-Systemen häufig fehl. Dieses Script übernimmt Download, Austausch, Prüfung und Rollback nachvollziehbar und zuverlässig."
+                >
+                    The built-in updater often fails on ARM systems. This script handles download, replacement, validation and rollback in a predictable way.
+                </p>
+            </div>
+
+            <div class="card">
+                <h2 data-en="Highlights" data-de="Highlights">Highlights</h2>
+                <div class="mini-card">
+                    <strong data-en="What it does" data-de="Was es macht">What it does</strong>
+                    <p
+                        data-en="Version check, binary backup, native service stop/start, DNS verification and rollback on failure."
+                        data-de="Versionsprüfung, Binary-Backup, nativer Service-Stop/Start, DNS-Prüfung und Rollback bei Fehlern."
+                    >
+                        Version check, binary backup, native service stop/start, DNS verification and rollback on failure.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 data-en="Live CLI Preview" data-de="Live CLI Vorschau">Live CLI Preview</h2>
+            <div class="terminal" id="terminal"></div>
+        </div>
+
+        <div class="footer">
+            <span
+                id="footerLinks"
+                data-en='<a href="https://foxly.de/datenschutzerklaerung/" target="_blank" rel="noopener noreferrer">Privacy Policy</a> | <a href="https://foxly.de/legal-notice/" target="_blank" rel="noopener noreferrer">Legal Notice</a>'
+                data-de='<a href="https://foxly.de/datenschutzerklaerung/" target="_blank" rel="noopener noreferrer">Datenschutzerklärung</a> | <a href="https://foxly.de/legal-notice/" target="_blank" rel="noopener noreferrer">Impressum</a>'
+            >
+                <a href="https://foxly.de/datenschutzerklaerung/" target="_blank" rel="noopener noreferrer">Privacy Policy</a> |
+                <a href="https://foxly.de/legal-notice/" target="_blank" rel="noopener noreferrer">Legal Notice</a>
+            </span>
+        </div>
+
     </div>
-    <div>
-        <button onclick="toggleTheme()">🌙</button>
-    </div>
-</div>
 
-<div class="header">
-    <img src="https://github.com/foxly-it/adguard-home-updater/blob/main/assets/banner.png?raw=true">
-    <h1>AdGuard Home Updater</h1>
-</div>
+    <script>
+        function setLang(lang) {
+            document.querySelectorAll("[data-en]").forEach((el) => {
+                const value = el.getAttribute("data-" + lang);
+                if (value !== null) {
+                    el.innerHTML = value;
+                }
+            });
 
-<div class="badges">
-    <span class="badge">✔ Secure</span>
-    <span class="badge">✔ Open Source</span>
-    <span class="badge">✔ ARM64 Ready</span>
-</div>
+            document.getElementById("btn-en").classList.toggle("active", lang === "en");
+            document.getElementById("btn-de").classList.toggle("active", lang === "de");
 
-<div class="stats">
-    <div class="stat-card">
-        <div class="stat-icon">📦</div>
-        <div class="stat-title">Updater Version</div>
-        <div class="stat-value" id="version">...</div>
-    </div>
+            const targetSelect = document.getElementById("targetSystem");
+            if (lang === "de") {
+                targetSelect.options[0].text = "Linux (empfohlen)";
+                targetSelect.options[1].text = "Linux (ARM / Raspberry Pi)";
+                targetSelect.options[2].text = "macOS (nur Test)";
+                document.getElementById("copyBtn").textContent = "Kopieren";
+            } else {
+                targetSelect.options[0].text = "Linux (recommended)";
+                targetSelect.options[1].text = "Linux (ARM / Raspberry Pi)";
+                targetSelect.options[2].text = "macOS (testing only)";
+                document.getElementById("copyBtn").textContent = "Copy";
+            }
 
-    <div class="stat-card">
-        <div class="stat-icon">⬇️</div>
-        <div class="stat-title">Installs</div>
-        <div class="stat-value" id="downloads">...</div>
-    </div>
+            window.currentLang = lang;
+        }
 
-    <div class="stat-card">
-        <div class="stat-icon">🛡️</div>
-        <div class="stat-title">AdGuard Latest</div>
-        <div class="stat-value" id="aghVersion">...</div>
-    </div>
-</div>
+        function toggleTheme() {
+            document.body.classList.toggle("dark");
+            const dark = document.body.classList.contains("dark");
+            document.getElementById("themeToggle").textContent = dark ? "☀️" : "🌙";
+        }
 
-<div class="card cta">
-    <h2>Install</h2>
-    <div class="code" id="installCmd">
-        curl -fsSL https://install.foxly.de/install.sh | sudo bash
-        <button class="copy-btn" onclick="copyInstall()">Copy</button>
-    </div>
-</div>
+        function updateInstallCmd() {
+            const system = document.getElementById("targetSystem").value;
+            const cmd = document.getElementById("installCmd");
 
-<div class="card">
-    <h2>Live CLI</h2>
-    <div class="terminal" id="terminal"></div>
-</div>
+            let command = "curl -fsSL https://install.foxly.de/install.sh | sudo bash";
 
-<div class="footer">
-    <a href="https://foxly.de/datenschutzerklaerung/">Privacy Policy</a> |
-    <a href="https://foxly.de/legal-notice/">Legal Notice</a>
-</div>
+            if (system === "mac") {
+                command = "curl -fsSL https://install.foxly.de/install.sh | bash";
+            }
 
-</div>
+            if (system === "arm") {
+                command = "curl -fsSL https://install.foxly.de/install.sh | sudo bash";
+            }
 
-<script>
-function toggleTheme() {
-    const current = document.documentElement.getAttribute("data-theme");
-    if (current === "dark") {
-        document.documentElement.removeAttribute("data-theme");
-    } else {
-        document.documentElement.setAttribute("data-theme", "dark");
-    }
-}
+            cmd.textContent = command;
+        }
 
-function copyInstall() {
-    const el = document.getElementById("installCmd");
-    const btn = el.querySelector(".copy-btn");
+        function copyInstall() {
+            const text = document.getElementById("installCmd").textContent;
+            const feedback = document.getElementById("copyFeedback");
+            const copyBtn = document.getElementById("copyBtn");
 
-    const text = el.innerText.replace("Copy", "").trim();
-    navigator.clipboard.writeText(text);
+            navigator.clipboard.writeText(text).then(() => {
+                copyBtn.textContent = window.currentLang === "de" ? "Kopiert ✓" : "Copied ✓";
+                feedback.textContent = window.currentLang === "de"
+                    ? "Befehl in die Zwischenablage kopiert."
+                    : "Command copied to clipboard.";
 
-    btn.innerText = "Copied ✓";
-    setTimeout(() => btn.innerText = "Copy", 1500);
-}
+                setTimeout(() => {
+                    copyBtn.textContent = window.currentLang === "de" ? "Kopieren" : "Copy";
+                    feedback.textContent = "";
+                }, 1600);
+            });
+        }
 
-/* API DATA */
+        async function loadUpdaterVersion() {
+            try {
+                const r = await fetch("https://api.github.com/repos/foxly-it/adguard-home-updater/releases/latest");
+                const d = await r.json();
+                document.getElementById("updaterVersion").textContent = d.tag_name || "...";
+            } catch {
+                document.getElementById("updaterVersion").textContent = "n/a";
+            }
+        }
 
-fetch("https://api.github.com/repos/foxly-it/adguard-home-updater/releases/latest")
-.then(r => r.json())
-.then(d => document.getElementById("version").innerText = d.tag_name);
+        async function loadInstallCount() {
+            try {
+                const r = await fetch("https://api.github.com/repos/foxly-it/adguard-home-updater/releases");
+                const releases = await r.json();
 
-fetch("https://api.github.com/repos/foxly-it/adguard-home-updater/releases")
-.then(r => r.json())
-.then(data => {
-    let total = 0;
-    data.forEach(r => r.assets.forEach(a => total += a.download_count));
-    document.getElementById("downloads").innerText = total;
-});
+                let total = 0;
 
-fetch("https://api.github.com/repos/AdguardTeam/AdGuardHome/releases/latest")
-.then(r => r.json())
-.then(d => document.getElementById("aghVersion").innerText = d.tag_name);
+                if (Array.isArray(releases)) {
+                    releases.forEach((release) => {
+                        if (Array.isArray(release.assets)) {
+                            release.assets.forEach((asset) => {
+                                total += asset.download_count || 0;
+                            });
+                        }
+                    });
+                }
 
-/* CLI */
+                document.getElementById("installCount").textContent = total.toString();
+            } catch {
+                document.getElementById("installCount").textContent = "n/a";
+            }
+        }
 
-const terminal = document.getElementById("terminal");
+        async function loadAdGuardVersion() {
+            try {
+                const r = await fetch("https://api.github.com/repos/AdguardTeam/AdGuardHome/releases/latest");
+                const d = await r.json();
+                document.getElementById("aghVersion").textContent = d.tag_name || "...";
+            } catch {
+                document.getElementById("aghVersion").textContent = "n/a";
+            }
+        }
 
-const sequence = [
+        const terminal = document.getElementById("terminal");
+
+        const sequence = [
 `<span class="banner">
  █████╗ ██████╗  ██████╗ ██╗   ██╗ █████╗ ██████╗ ██████╗
 ██╔══██╗██╔══██╗██╔════╝ ██║   ██║██╔══██╗██╔══██╗██╔══██╗
@@ -324,36 +619,45 @@ const sequence = [
  AdGuard Home Updater
  Foxly Infrastructure Tools
 </span>`,
-
 `<span class="log-info">[INFO]</span> Architecture detected: arm64`,
 `<span class="log-info">[INFO]</span> Installed version: 0.107.73`,
 `<span class="log-info">[INFO]</span> Latest version: 0.107.74`,
 `<span class="log-info">[INFO]</span> Downloading release...`,
 `Progress: [████████████████████] 100%`,
+`<span class="log-info">[INFO]</span> Verifying checksum...`,
 `<span class="log-ok">[OK]</span> Checksum valid`,
+`<span class="log-info">[INFO]</span> Stopping AdGuard Home`,
 `<span class="log-info">[INFO]</span> Installing new binary`,
+`<span class="log-info">[INFO]</span> Starting service`,
+`<span class="log-info">[INFO]</span> Running DNS health check`,
+`<span class="log-ok">[OK]</span> DNS health check successful`,
 `<span class="log-ok">[OK]</span> Update finished`
-];
+        ];
 
-let i = 0;
+        let cliIndex = 0;
 
-function runCLI() {
-    if (i < sequence.length) {
-        terminal.innerHTML += sequence[i] + "\n";
-        terminal.scrollTop = terminal.scrollHeight;
-        i++;
-        setTimeout(runCLI, 500);
-    } else {
-        setTimeout(() => {
-            terminal.innerHTML = "";
-            i = 0;
-            runCLI();
-        }, 4000);
-    }
-}
+        function runCLI() {
+            if (cliIndex < sequence.length) {
+                terminal.innerHTML += sequence[cliIndex] + "\n";
+                terminal.scrollTop = terminal.scrollHeight;
+                cliIndex++;
+                setTimeout(runCLI, 520);
+            } else {
+                setTimeout(() => {
+                    terminal.innerHTML = "";
+                    cliIndex = 0;
+                    runCLI();
+                }, 3800);
+            }
+        }
 
-runCLI();
-</script>
-
+        window.currentLang = "en";
+        setLang("en");
+        updateInstallCmd();
+        loadUpdaterVersion();
+        loadInstallCount();
+        loadAdGuardVersion();
+        runCLI();
+    </script>
 </body>
 </html>
