@@ -518,7 +518,7 @@
 
     </div>
 
-    <script>
+<script>
         function setLang(lang) {
             document.querySelectorAll("[data-en]").forEach((el) => {
                 const value = el.getAttribute("data-" + lang);
@@ -632,17 +632,7 @@
 
         const terminal = document.getElementById("terminal");
 
-const terminal = document.getElementById("terminal");
-
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-async function runCLI() {
-    while (true) {
-        terminal.innerHTML = "";
-
-        const lines = [
+        const sequence = [
 `<span class="banner">
  █████╗ ██████╗  ██████╗ ██╗   ██╗ █████╗ ██████╗ ██████╗
 ██╔══██╗██╔══██╗██╔════╝ ██║   ██║██╔══██╗██╔══██╗██╔══██╗
@@ -660,24 +650,52 @@ async function runCLI() {
 `<span class="log-info">[INFO]</span> Downloading release...`
         ];
 
-        // normale Logs
-        for (let line of lines) {
-            terminal.innerHTML += line + "\n";
-            await sleep(350);
-        }
+        let cliIndex = 0;
 
-        // 🔥 DYNAMISCHE PROGRESSBAR
-        let bar = "";
-        for (let i = 0; i <= 20; i++) {
-            bar = "█".repeat(i) + "░".repeat(20 - i);
-            terminal.innerHTML =
-                terminal.innerHTML.replace(/Progress:.*/, "") +
-                `Progress: [${bar}] ${i * 5}%\n`;
+        function runCLI() {
 
-            await sleep(90);
-        }
+            if (cliIndex < sequence.length) {
+                terminal.innerHTML += sequence[cliIndex] + "\n";
+                terminal.scrollTop = terminal.scrollHeight;
+                cliIndex++;
+                setTimeout(runCLI, 520);
+                return;
+            }
 
-        const endLines = [
+            // 🔥 echte Progressbar Animation
+            if (cliIndex === sequence.length) {
+
+                let progress = 0;
+
+                function animate() {
+                    let bar = "█".repeat(progress) + "░".repeat(20 - progress);
+                    let percent = progress * 5;
+
+                    let line = `Progress: [${bar}] ${percent}%`;
+
+                    let lines = terminal.innerHTML.split("\n");
+
+                    if (lines[lines.length - 2]?.startsWith("Progress")) {
+                        lines[lines.length - 2] = line;
+                        terminal.innerHTML = lines.join("\n");
+                    } else {
+                        terminal.innerHTML += line + "\n";
+                    }
+
+                    if (progress < 20) {
+                        progress++;
+                        setTimeout(animate, 80);
+                    } else {
+                        cliIndex++;
+                        setTimeout(runCLI, 400);
+                    }
+                }
+
+                animate();
+                return;
+            }
+
+            const end = [
 `<span class="log-info">[INFO]</span> Verifying checksum...`,
 `<span class="log-ok">[OK]</span> Checksum valid`,
 `<span class="log-info">[INFO]</span> Stopping AdGuard Home`,
@@ -686,22 +704,10 @@ async function runCLI() {
 `<span class="log-info">[INFO]</span> Running DNS health check`,
 `<span class="log-ok">[OK]</span> DNS health check successful`,
 `<span class="log-ok">[OK]</span> Update finished`
-        ];
+            ];
 
-        for (let line of endLines) {
-            terminal.innerHTML += line + "\n";
-            await sleep(350);
-        }
-
-        await sleep(3000);
-    }
-}
-
-        let cliIndex = 0;
-
-        function runCLI() {
-            if (cliIndex < sequence.length) {
-                terminal.innerHTML += sequence[cliIndex] + "\n";
+            if (cliIndex < sequence.length + 1 + end.length) {
+                terminal.innerHTML += end[cliIndex - sequence.length - 1] + "\n";
                 terminal.scrollTop = terminal.scrollHeight;
                 cliIndex++;
                 setTimeout(runCLI, 520);
@@ -721,6 +727,6 @@ async function runCLI() {
         loadInstallCount();
         loadAdGuardVersion();
         runCLI();
-    </script>
+</script>
 </body>
 </html>
