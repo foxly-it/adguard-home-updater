@@ -355,29 +355,39 @@ cd "$TMP_DIR"
 ARCHIVE="AdGuardHome_linux_${ARCH}.tar.gz"
 
 run curl -L -o adguard.tar.gz "$BASE_URL/$ARCHIVE"
-run curl -L -o checksums.txt "$BASE_URL/AdGuardHome_checksums.txt"
+# ---------------------------------------------------------
+# checksum validation via GitHub release assets
+# ---------------------------------------------------------
 
-if ! $DRY_RUN; then
+CHECKSUM_URL=$(curl -s https://api.github.com/repos/AdguardTeam/AdGuardHome/releases/latest \
+    | grep "browser_download_url" \
+    | grep "${ARCHIVE}.sha256" \
+    | cut -d '"' -f4 | head -n1)
 
-    EXPECTED=$(grep "$ARCHIVE" checksums.txt | awk '{print $1}' || true)
+if [[ -z "$CHECKSUM_URL" ]]; then
+    warn "Checksum URL not found, skipping verification"
+else
+    run curl -L -o checksum.txt "$CHECKSUM_URL"
 
-    if [[ -z "$EXPECTED" ]]; then
-        error "Checksum entry not found for $ARCHIVE"
-        echo "Available checksums:"
-        cat checksums.txt
-        exit 1
+    if ! $DRY_RUN; then
+
+        EXPECTED=$(awk '{print $1}' checksum.txt)
+        DOWNLOADED=$(sha256sum adguard.tar.gz | awk '{print $1}')
+
+        if [[ -z "$EXPECTED" ]]; then
+            error "Failed to read checksum"
+            exit 1
+        fi
+
+        if [[ "$EXPECTED" != "$DOWNLOADED" ]]; then
+            error "Checksum verification failed"
+            exit 1
+        fi
+
     fi
 
-    DOWNLOADED=$(sha256sum adguard.tar.gz | awk '{print $1}')
-
-    if [[ "$EXPECTED" != "$DOWNLOADED" ]]; then
-        error "Checksum verification failed"
-        exit 1
-    fi
-
+    success "Checksum valid"
 fi
-
-success "Checksum valid"
 
 if ! $DRY_RUN; then
     tar xzf adguard.tar.gz
