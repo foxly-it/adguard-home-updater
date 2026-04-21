@@ -2,23 +2,28 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AdGuard Home Updater – Foxly</title>
+<title>AdGuard Home Updater</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
 :root {
-    --bg: #f5f7fa;
+    --accent: #4CAF50;
+    --bg: #f6f8fa;
     --card: #ffffff;
-    --soft: #f0f3f7;
-    --text: #1f2937;
-    --muted: #6b7280;
-    --accent: #4caf50;
-    --border: #e5e7eb;
+    --text: #222;
+    --muted: #666;
+}
+
+[data-theme="dark"] {
+    --bg: #0f1720;
+    --card: #1a2330;
+    --text: #e5e7eb;
+    --muted: #9ca3af;
 }
 
 body {
     margin: 0;
-    font-family: system-ui, -apple-system, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     background: var(--bg);
     color: var(--text);
 }
@@ -26,85 +31,44 @@ body {
 .container {
     max-width: 900px;
     margin: auto;
-    padding: 40px 20px;
+    padding: 30px 20px;
 }
 
 /* HEADER */
 
 .header {
     text-align: center;
-    margin-bottom: 30px;
-}
-
-.header img {
-    width: 100%;
-    max-width: 720px;
-    border-radius: 12px;
     margin-bottom: 20px;
 }
 
-.header h1 {
-    font-size: 2rem;
+.header img {
+    max-width: 320px;
+}
+
+/* TOP BAR */
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
     margin-bottom: 10px;
 }
 
-.header p {
-    color: var(--muted);
-}
-
-/* LANGUAGE SWITCH */
-
-.lang-switch {
-    position: absolute;
-    top: 15px;
-    right: 20px;
-}
-
-.lang-switch button {
-    border: 1px solid var(--border);
-    background: white;
+button {
+    border: none;
+    background: #e5e7eb;
     padding: 6px 10px;
     border-radius: 6px;
     cursor: pointer;
 }
 
-.lang-switch .active {
-    background: var(--accent);
-    color: white;
-}
-
-/* CARD */
+/* CARDS */
 
 .card {
     background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
     padding: 20px;
+    border-radius: 12px;
     margin-bottom: 20px;
-}
-
-/* INSTALL */
-
-.install-box {
-    background: #111;
-    color: #0f0;
-    border-radius: 10px;
-    padding: 15px;
-    font-family: monospace;
-    position: relative;
-}
-
-.copy-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: var(--accent);
-    color: white;
-    border: none;
-    padding: 5px 8px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.8rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
 
 /* CTA */
@@ -112,164 +76,216 @@ body {
 .cta {
     border: 2px solid var(--accent);
     background: #eaf7ea;
+    transition: 0.3s;
 }
 
-/* GRID */
-
-.grid {
-    display: grid;
-    gap: 15px;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+.cta:hover {
+    box-shadow: 0 0 20px rgba(76, 175, 80, 0.4);
 }
 
-.feature {
-    background: var(--soft);
+.code {
+    background: #111;
+    color: #0f0;
+    padding: 12px;
+    border-radius: 8px;
+    font-family: monospace;
+    position: relative;
+}
+
+.copy-btn {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    background: var(--accent);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 6px;
+}
+
+/* TERMINAL */
+
+.terminal {
+    background: #000;
+    color: #0f0;
     padding: 15px;
     border-radius: 10px;
+    font-family: monospace;
+    min-height: 160px;
+    white-space: pre-wrap;
 }
 
 /* FOOTER */
 
 .footer {
     text-align: center;
-    margin-top: 40px;
-    font-size: 0.85rem;
+    margin-top: 30px;
     color: var(--muted);
 }
-
-.footer a {
-    color: var(--accent);
-    text-decoration: none;
-}
-
-/* CLI SVG */
-
-.cli {
-    text-align: center;
-}
-
-.cli img {
-    max-width: 100%;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-}
-
 </style>
 </head>
 
 <body>
 
-<div class="lang-switch">
-    <button onclick="setLang('en')" id="btn-en" class="active">EN</button>
-    <button onclick="setLang('de')" id="btn-de">DE</button>
-</div>
-
 <div class="container">
 
-    <!-- HEADER -->
-    <div class="header">
-        <img src="https://github.com/foxly-it/adguard-home-updater/blob/main/assets/banner.png?raw=true">
-        <h1 data-en="AdGuard Home Updater" data-de="AdGuard Home Updater"></h1>
-        <p data-en="Safe and automated updates for bare-metal installations"
-           data-de="Automatische, sichere Updates für Bare-Metal Installationen"></p>
-
-        <p id="version" style="margin-top:10px; font-size:0.9rem; color:#6b7280;">
-            Loading version...
-        </p>
+<div class="topbar">
+    <div>
+        <button onclick="setLang('en')">EN</button>
+        <button onclick="setLang('de')">DE</button>
     </div>
 
-    <!-- INSTALL CTA -->
-    <div class="card cta">
-        <strong data-en="Install in one command" data-de="Installation in einem Befehl"></strong>
-
-        <div class="install-box" id="installCmd">
-curl -fsSL https://install.foxly.de/install.sh | sudo bash
-            <button class="copy-btn" onclick="copyInstall()">Copy</button>
-        </div>
+    <div>
+        <button onclick="toggleTheme()">🌙</button>
     </div>
+</div>
 
-    <!-- WHY -->
-    <div class="card">
-        <p data-en="Why this tool?" data-de="Warum dieses Tool?"></p>
-        <p data-en="The built-in updater often fails on ARM systems."
-           data-de="Der integrierte Updater funktioniert auf ARM oft nicht zuverlässig."></p>
+<div class="header">
+    <img src="https://github.com/foxly-it/adguard-home-updater/blob/main/assets/banner.png?raw=true">
+    <h1>AdGuard Home Updater</h1>
+    <p id="version">Loading version...</p>
+    <p id="downloads">Loading installs...</p>
+</div>
+
+<div class="card cta">
+    <h2 data-en="Install" data-de="Installation"></h2>
+
+    <div class="code" id="installCmd">
+        curl -fsSL https://install.foxly.de/install.sh | sudo bash
+        <button class="copy-btn" onclick="copyInstall()">Copy</button>
     </div>
+</div>
 
-    <!-- FEATURES -->
-    <div class="card">
-        <div class="grid">
-            <div class="feature">
-                <strong>Auto Update</strong>
-                <p data-en="Detects new versions automatically"
-                   data-de="Erkennt neue Versionen automatisch"></p>
-            </div>
+<div class="card">
+    <h2>Live CLI</h2>
+    <div class="terminal" id="terminal"></div>
+</div>
 
-            <div class="feature">
-                <strong>Rollback</strong>
-                <p data-en="Restores previous version"
-                   data-de="Rollback bei Fehlern"></p>
-            </div>
+<div class="card">
+    <h2 data-en="Features" data-de="Funktionen"></h2>
 
-            <div class="feature">
-                <strong>DNS Check</strong>
-                <p data-en="Verifies DNS after update"
-                   data-de="DNS Prüfung nach Update"></p>
-            </div>
+    <ul data-en="
+        <li>Automatic updates</li>
+        <li>Rollback protection</li>
+        <li>Checksum validation</li>
+        <li>DNS health check</li>
+    "
+    data-de="
+        <li>Automatische Updates</li>
+        <li>Rollback Schutz</li>
+        <li>Checksum Prüfung</li>
+        <li>DNS Health Check</li>
+    ">
+    </ul>
+</div>
 
-            <div class="feature">
-                <strong>Dry Run</strong>
-                <p data-en="Simulation mode"
-                   data-de="Simulation ohne Änderungen"></p>
-            </div>
-        </div>
-    </div>
-
-    <!-- CLI PREVIEW -->
-    <div class="card cli">
-        <strong>CLI Preview</strong>
-        <img src="/assets/cli-demo.svg">
-    </div>
-
-    <!-- FOOTER -->
-    <div class="footer">
-        <p>© Foxly Infrastructure Tools</p>
-        <p>
-            <a href="https://foxly.de/datenschutzerklaerung/" target="_blank">Datenschutz</a> |
-            <a href="https://foxly.de/legal-notice/" target="_blank">Impressum</a> |
-            <a href="https://github.com/foxly-it/adguard-home-updater" target="_blank">GitHub</a>
-        </p>
-    </div>
+<div class="footer">
+    <a href="https://foxly.de/datenschutzerklaerung/">Privacy</a> |
+    <a href="https://foxly.de/legal-notice/">Imprint</a>
+</div>
 
 </div>
 
 <script>
+// ============================
+// LANGUAGE
+// ============================
+
 function setLang(lang) {
     document.querySelectorAll("[data-en]").forEach(el => {
-        el.textContent = el.getAttribute("data-" + lang);
+        el.innerHTML = el.getAttribute("data-" + lang);
     });
-
-    document.getElementById("btn-en").classList.remove("active");
-    document.getElementById("btn-de").classList.remove("active");
-    document.getElementById("btn-" + lang).classList.add("active");
 }
-
-function copyInstall() {
-    const text = document.getElementById("installCmd").innerText.trim();
-    navigator.clipboard.writeText(text);
-}
-
-/* Live Version */
-fetch("https://api.github.com/repos/AdguardTeam/AdGuardHome/releases/latest")
-.then(r => r.json())
-.then(data => {
-    document.getElementById("version").innerText =
-        "Latest AdGuard Home: " + data.tag_name;
-})
-.catch(() => {
-    document.getElementById("version").innerText = "";
-});
 
 setLang("en");
+
+// ============================
+// THEME
+// ============================
+
+function toggleTheme() {
+    const current = document.documentElement.getAttribute("data-theme");
+
+    if (current === "dark") {
+        document.documentElement.removeAttribute("data-theme");
+    } else {
+        document.documentElement.setAttribute("data-theme", "dark");
+    }
+}
+
+// ============================
+// COPY BUTTON
+// ============================
+
+function copyInstall() {
+    const el = document.getElementById("installCmd");
+    const btn = el.querySelector(".copy-btn");
+
+    const text = el.innerText.replace("Copy", "").trim();
+    navigator.clipboard.writeText(text);
+
+    btn.innerText = "Copied ✓";
+
+    setTimeout(() => {
+        btn.innerText = "Copy";
+    }, 1500);
+}
+
+// ============================
+// LIVE VERSION + DOWNLOADS
+// ============================
+
+fetch("https://api.github.com/repos/foxly-it/adguard-home-updater/releases/latest")
+.then(r => r.json())
+.then(data => {
+    document.getElementById("version").innerText = "Version: " + data.tag_name;
+});
+
+fetch("https://api.github.com/repos/foxly-it/adguard-home-updater/releases")
+.then(r => r.json())
+.then(data => {
+    let total = 0;
+
+    data.forEach(r => {
+        r.assets.forEach(a => total += a.download_count);
+    });
+
+    document.getElementById("downloads").innerText = "Installs: " + total;
+});
+
+// ============================
+// TERMINAL ANIMATION
+// ============================
+
+const lines = [
+    "Checking version...",
+    "Latest version found",
+    "Downloading release...",
+    "Verifying checksum...",
+    "Stopping service...",
+    "Installing update...",
+    "Starting service...",
+    "Running DNS test...",
+    "✔ Update successful"
+];
+
+let i = 0;
+let terminal = document.getElementById("terminal");
+
+function typeLine() {
+    if (i < lines.length) {
+        terminal.innerHTML += lines[i] + "\n";
+        i++;
+        setTimeout(typeLine, 600);
+    } else {
+        setTimeout(() => {
+            terminal.innerHTML = "";
+            i = 0;
+            typeLine();
+        }, 3000);
+    }
+}
+
+typeLine();
 </script>
 
 </body>
