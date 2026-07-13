@@ -188,6 +188,7 @@ Protokolle und AdGuard-Home-Backups bleiben bewusst erhalten.
 
 ```bash
 bash -n adguard-update install.sh docs/install.sh tests/integration.sh
+node tests/web-configurator.js
 shellcheck -x adguard-update install.sh docs/install.sh tests/integration.sh
 shfmt -i 4 -ci -sr -d adguard-update install.sh docs/install.sh tests/integration.sh
 bash tests/integration.sh

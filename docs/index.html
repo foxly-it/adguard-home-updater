@@ -72,7 +72,7 @@
 
         .topbar {
             display: flex;
-            justify-content: flex-end;
+            justify-content: space-between;
             align-items: center;
             gap: 12px;
             margin-bottom: 18px;
@@ -105,6 +105,33 @@
             background: var(--accent);
             border-color: var(--accent);
             color: #fff;
+        }
+
+        .github-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--card);
+            color: var(--text);
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: 0.2s ease;
+        }
+
+        .github-link:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            transform: translateY(-1px);
+        }
+
+        .github-link svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
         }
 
         .header {
@@ -232,6 +259,80 @@
             margin-bottom: 12px;
         }
 
+        .wizard-header {
+            margin: 18px 0;
+            padding: 16px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--card-soft);
+        }
+
+        .wizard-meta {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 9px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .wizard-progress {
+            height: 7px;
+            margin-bottom: 14px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: var(--border);
+        }
+
+        .wizard-progress-bar {
+            width: 20%;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, var(--accent-strong), var(--accent));
+            transition: width 0.25s ease;
+        }
+
+        .wizard-title {
+            margin: 0 0 5px;
+            font-size: 1.08rem;
+        }
+
+        .wizard-description {
+            margin: 0;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .wizard-validation {
+            min-height: 20px;
+            margin: -6px 0 8px;
+            color: #fca5a5;
+            font-size: 12px;
+        }
+
+        .preset-tools {
+            margin: 0 0 16px;
+            padding: 12px;
+            border: 1px dashed var(--border);
+            border-radius: 10px;
+            background: var(--card-soft);
+        }
+
+        .preset-tools[hidden] {
+            display: none;
+        }
+
+        .preset-label {
+            display: block;
+            margin-bottom: 9px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
         .config-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
@@ -240,10 +341,80 @@
         }
 
         .config-field {
-            display: grid;
+            display: none;
             grid-template-rows: minmax(3.6em, auto) 42px auto;
             align-content: start;
             gap: 7px;
+        }
+
+        .config-field.wizard-visible {
+            display: grid;
+        }
+
+        .wizard-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin: 4px 0 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .advanced-toggle {
+            display: block;
+            margin: -4px 0 16px;
+            padding: 8px 0;
+            border: 0;
+            background: transparent;
+            color: var(--accent);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+            text-align: left;
+        }
+
+        .advanced-toggle:hover {
+            text-decoration: underline;
+        }
+
+        .advanced-toggle[hidden] {
+            display: none;
+        }
+
+        .wizard-btn {
+            appearance: none;
+            min-width: 120px;
+            padding: 10px 16px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--card);
+            color: var(--text);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .wizard-btn.primary {
+            margin-left: auto;
+            border-color: var(--accent);
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .wizard-btn:hover:not(:disabled) {
+            border-color: var(--accent);
+            transform: translateY(-1px);
+        }
+
+        .wizard-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.45;
+        }
+
+        .wizard-review[hidden],
+        .config-grid[hidden] {
+            display: none;
         }
 
         .install-options label {
@@ -531,20 +702,55 @@
         .banner { color: #9ca3af; }
 
         .footer {
-            text-align: center;
             margin-top: 28px;
+            padding: 20px;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: var(--card);
             color: var(--muted);
+            font-size: 13px;
+        }
+
+        .footer-main,
+        .footer-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .footer-brand strong {
+            display: block;
+            margin-bottom: 3px;
+            color: var(--text);
             font-size: 14px;
         }
 
-        .footer a {
-            color: var(--accent-strong);
-            text-decoration: none;
-            margin: 0 6px;
+        .footer-links {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
-        .footer a:hover {
-            text-decoration: underline;
+        .footer-links a {
+            padding: 7px 10px;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            color: var(--muted);
+            text-decoration: none;
+        }
+
+        .footer-links a:hover {
+            border-color: var(--border);
+            background: var(--card-soft);
+            color: var(--accent);
+        }
+
+        .footer-bottom {
+            margin-top: 16px;
+            padding-top: 14px;
+            border-top: 1px solid var(--border);
         }
 
         @media (max-width: 640px) {
@@ -577,6 +783,26 @@
             .config-summary {
                 grid-template-columns: 1fr;
             }
+
+            .wizard-nav,
+            .footer-main,
+            .footer-bottom {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .wizard-btn {
+                width: 100%;
+            }
+
+            .wizard-btn.primary {
+                margin-left: 0;
+            }
+
+            .footer-links {
+                align-items: stretch;
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -584,6 +810,13 @@
     <div class="container">
 
         <div class="topbar">
+            <a class="github-link" href="https://github.com/foxly-it/adguard-home-updater" target="_blank" rel="noopener noreferrer"
+               aria-label="Open the AdGuard Home Updater repository on GitHub">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 .7a11.5 11.5 0 0 0-3.64 22.41c.58.11.79-.25.79-.56v-2.02c-3.22.7-3.9-1.37-3.9-1.37-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.71.08-.71 1.16.08 1.77 1.2 1.77 1.2 1.04 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.73-1.55-2.57-.29-5.28-1.29-5.28-5.73 0-1.27.45-2.3 1.2-3.11-.12-.29-.52-1.47.11-3.07 0 0 .98-.31 3.16 1.19a10.93 10.93 0 0 1 5.76 0c2.19-1.5 3.16-1.19 3.16-1.19.63 1.6.23 2.78.11 3.07.75.81 1.2 1.84 1.2 3.11 0 4.45-2.71 5.43-5.29 5.72.42.36.79 1.06.79 2.14v3.06c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .7Z"/>
+                </svg>
+                <span>GitHub</span>
+            </a>
             <div class="toolbar-group">
                 <button class="toolbar-btn active" id="btn-en" onclick="setLang('en')">EN</button>
                 <button class="toolbar-btn" id="btn-de" onclick="setLang('de')">DE</button>
@@ -631,19 +864,38 @@
         <div class="card cta">
             <h2 data-en="Install" data-de="Installation">Install</h2>
 
-            <p data-en="Configure the updater. The generated command validates and stores every selected setting on the target system."
-               data-de="Konfiguriere den Updater. Der erzeugte Befehl validiert und speichert jede gewählte Einstellung auf dem Zielsystem.">
-                Configure the updater. The generated command validates and stores every selected setting on the target system.
+            <p data-en="Answer one short step at a time. At the end, you can review every setting before copying the installation command."
+               data-de="Beantworte nacheinander wenige verständliche Fragen. Am Ende kannst du jede Einstellung prüfen, bevor du den Installationsbefehl kopierst.">
+                Answer one short step at a time and review everything before installation.
             </p>
 
-            <div class="toolbar-group" style="margin: 14px 0 18px;">
-                <button class="toolbar-btn" onclick="applyPreset('safe')" data-en="Example: safe automatic" data-de="Beispiel: sicher automatisch">Example: safe automatic</button>
-                <button class="toolbar-btn" onclick="applyPreset('notify')" data-en="Example: report only" data-de="Beispiel: nur melden">Example: report only</button>
-                <button class="toolbar-btn" onclick="applyPreset('manual')" data-en="Example: manual only" data-de="Beispiel: nur manuell">Example: manual only</button>
+            <div class="preset-tools" id="presetTools" hidden>
+                <span class="preset-label"
+                      data-en="Optional quick selection — you can still change every value afterward."
+                      data-de="Optionale Schnellwahl – alle Werte können danach weiterhin geändert werden.">Optional quick selection.</span>
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" onclick="applyPreset('safe')" data-en="Recommended automatic" data-de="Empfohlen automatisch">Recommended automatic</button>
+                    <button class="toolbar-btn" onclick="applyPreset('notify')" data-en="Report only" data-de="Nur melden">Report only</button>
+                    <button class="toolbar-btn" onclick="applyPreset('manual')" data-en="Manual only" data-de="Nur manuell">Manual only</button>
+                </div>
             </div>
 
-            <div class="install-options config-grid">
-                <div class="config-field">
+            <div class="wizard-header" id="wizardHeader">
+                <div class="wizard-meta">
+                    <span id="wizardStepLabel">Step 1 of 5</span>
+                    <span data-en="Guided setup" data-de="Geführte Einrichtung">Guided setup</span>
+                </div>
+                <div class="wizard-progress" id="wizardProgressTrack" role="progressbar"
+                     aria-label="Configuration progress" aria-valuemin="1" aria-valuemax="5" aria-valuenow="1">
+                    <div class="wizard-progress-bar" id="wizardProgress"></div>
+                </div>
+                <h3 class="wizard-title" id="wizardTitle">AdGuard Home</h3>
+                <p class="wizard-description" id="wizardDescription"></p>
+            </div>
+            <div class="wizard-validation" id="wizardValidation" role="alert" aria-live="polite"></div>
+
+            <div class="install-options config-grid" id="configGrid">
+                <div class="config-field" data-step="1">
                     <label for="installAdguard"
                            data-en="Install AdGuard Home if it is missing?"
                            data-de="AdGuard Home installieren, falls es fehlt?">Install AdGuard Home if it is missing?</label>
@@ -656,14 +908,14 @@
                           data-en="Yes downloads the latest stable official release, verifies its SHA-256 checksum, and installs its system service."
                           data-de="Ja lädt das aktuelle stabile offizielle Release, prüft dessen SHA-256-Summe und installiert den Systemdienst.">Choose whether the installer may add AdGuard Home.</span>
                 </div>
-                <div class="config-field">
+                <div class="config-field" data-step="2">
                     <label for="timerMode" data-en="Scheduled updates" data-de="Geplante Updates">Scheduled updates</label>
                     <select id="timerMode" onchange="updateBuilder()">
                         <option value="disabled">Disabled</option>
                         <option value="enabled">Enabled</option>
                     </select>
                 </div>
-                <div class="config-field timer-setting">
+                <div class="config-field timer-setting" id="delayEnabledField" data-step="2">
                     <label for="autoInstall" data-en="Install updates automatically?" data-de="Updates automatisch installieren?">Install updates automatically?</label>
                     <select id="autoInstall" onchange="updateBuilder()">
                         <option value="yes">Yes</option><option value="no">No, only report them</option>
@@ -671,7 +923,7 @@
                     <span class="field-help" data-en="No means the timer only reports available releases in the journal. Example: review first, then run sudo adguard-update manually."
                           data-de="Nein bedeutet: Der Timer meldet verfügbare Releases nur im Journal. Beispiel: erst prüfen, dann sudo adguard-update manuell ausführen.">Choose automatic installation or notification only.</span>
                 </div>
-                <div class="config-field timer-setting">
+                <div class="config-field timer-setting" data-step="2">
                     <label for="delayEnabled" data-en="Wait before installing a new release?" data-de="Vor Installation eines neuen Releases warten?">Wait before installing a new release?</label>
                     <select id="delayEnabled" onchange="updateBuilder()">
                         <option value="no">No</option><option value="yes">Yes</option>
@@ -679,11 +931,11 @@
                     <span class="field-help" data-en="A waiting period lets early release problems surface. Example: 7 days for production DNS."
                           data-de="Eine Wartezeit lässt frühe Release-Probleme sichtbar werden. Beispiel: 7 Tage für produktives DNS.">Optional release stabilization period.</span>
                 </div>
-                <div class="config-field timer-setting" id="delayDaysField">
+                <div class="config-field timer-setting" id="delayDaysField" data-step="2">
                     <label for="delayDays" data-en="Release delay in days" data-de="Release-Wartezeit in Tagen">Release delay in days</label>
                     <input id="delayDays" type="number" min="1" max="30" value="7" oninput="updateBuilder()">
                 </div>
-                <div class="config-field">
+                <div class="config-field" data-step="4">
                     <label for="multipleBackups" data-en="Keep multiple backups?" data-de="Mehrere Backups aufbewahren?">Keep multiple backups?</label>
                     <select id="multipleBackups" onchange="updateBuilder()">
                         <option value="yes">Yes</option><option value="no">No, keep only one</option>
@@ -691,11 +943,11 @@
                     <span class="field-help" data-en="Versioned backups allow sudo adguard-update --rollback after a problematic release."
                           data-de="Versionierte Backups erlauben nach einem problematischen Release sudo adguard-update --rollback.">Controls rollback history.</span>
                 </div>
-                <div class="config-field" id="retentionField">
+                <div class="config-field" id="retentionField" data-step="4">
                     <label for="backupRetention" data-en="Number of backups" data-de="Anzahl der Backups">Number of backups</label>
                     <input id="backupRetention" type="number" min="2" max="10" value="3" oninput="updateBuilder()">
                 </div>
-                <div class="config-field">
+                <div class="config-field" data-step="4">
                     <label for="healthRollback" data-en="Rollback when DNS health check fails?" data-de="Rollback bei fehlgeschlagenem DNS-Healthcheck?">Rollback when DNS health check fails?</label>
                     <select id="healthRollback" onchange="updateBuilder()">
                         <option value="yes">Yes (recommended)</option><option value="no">No, warn only</option>
@@ -703,26 +955,26 @@
                     <span class="field-help" data-en="Yes restores the previous binary and configuration. No keeps the new version and records a warning."
                           data-de="Ja stellt Binary und Konfiguration wieder her. Nein behält die neue Version und protokolliert eine Warnung.">Recommended for unattended updates.</span>
                 </div>
-                <div class="config-field">
+                <div class="config-field advanced-setting" data-step="4">
                     <label for="healthRetries" data-en="Health-check attempts" data-de="Healthcheck-Versuche">Health-check attempts</label>
                     <input id="healthRetries" type="number" min="1" max="60" value="15" oninput="updateBuilder()">
                 </div>
-                <div class="config-field">
+                <div class="config-field advanced-setting" data-step="4">
                     <label for="healthTimeout" data-en="DNS timeout in seconds" data-de="DNS-Timeout in Sekunden">DNS timeout in seconds</label>
                     <input id="healthTimeout" type="number" min="1" max="30" value="2" oninput="updateBuilder()">
                 </div>
-                <div class="config-field timer-setting">
+                <div class="config-field timer-setting" data-step="3">
                     <label for="schedule" data-en="Frequency" data-de="Häufigkeit">Frequency</label>
                     <select id="schedule" onchange="updateBuilder()">
                         <option value="daily">Daily</option>
                         <option value="weekly">Weekly</option>
                     </select>
                 </div>
-                <div class="config-field timer-setting">
+                <div class="config-field timer-setting" data-step="3">
                     <label for="runTime" data-en="Local execution time" data-de="Lokale Ausführungszeit">Local execution time</label>
                     <input id="runTime" type="time" value="03:00" onchange="updateBuilder()">
                 </div>
-                <div class="config-field timer-setting" id="weekdayField">
+                <div class="config-field timer-setting" id="weekdayField" data-step="3">
                     <label for="weekday" data-en="Weekday" data-de="Wochentag">Weekday</label>
                     <select id="weekday" onchange="updateBuilder()">
                         <option value="Mon">Monday</option><option value="Tue">Tuesday</option>
@@ -731,7 +983,7 @@
                         <option value="Sun" selected>Sunday</option>
                     </select>
                 </div>
-                <div class="config-field timer-setting">
+                <div class="config-field timer-setting" data-step="3">
                     <label for="randomDelay" data-en="Random delay" data-de="Zufallsverzögerung">Random delay</label>
                     <select id="randomDelay" onchange="updateBuilder()">
                         <option value="0">None</option><option value="15m">15 minutes</option>
@@ -741,11 +993,21 @@
                     <span class="field-help" data-en="Avoids all installations updating simultaneously."
                           data-de="Verhindert, dass alle Installationen gleichzeitig aktualisieren.">Avoids all installations updating simultaneously.</span>
                 </div>
-                <div class="config-field">
+                <div class="config-field advanced-setting" data-step="4">
                     <label for="healthDomain" data-en="DNS health-check domain" data-de="Domain für den DNS-Healthcheck">DNS health-check domain</label>
                     <input id="healthDomain" type="text" value="example.org" pattern="[A-Za-z0-9.-]+" oninput="updateBuilder()">
                 </div>
             </div>
+
+            <button class="advanced-toggle" id="advancedToggle" type="button" onclick="toggleAdvancedSettings()" hidden></button>
+
+            <div class="wizard-nav">
+                <button class="wizard-btn" id="wizardBack" type="button" onclick="previousWizardStep()"
+                        data-en="Back" data-de="Zurück">Back</button>
+                <button class="wizard-btn primary" id="wizardNext" type="button" onclick="nextWizardStep()">Continue</button>
+            </div>
+
+            <div class="wizard-review" id="wizardReview" hidden>
 
             <section class="config-review" aria-labelledby="reviewTitle">
                 <div class="review-header">
@@ -805,6 +1067,7 @@
             >
                 Used in homelab environments with ARM (Raspberry Pi) and x86 infrastructure.
             </div>
+            </div>
         </div>
 
         <div class="grid-2">
@@ -862,20 +1125,156 @@
             <div class="terminal" id="terminal"></div>
         </div>
 
-        <div class="footer">
-            <span
-                id="footerLinks"
-                data-en='<a href="https://foxly.de/datenschutzerklaerung/" target="_blank" rel="noopener noreferrer">Privacy Policy</a> | <a href="https://foxly.de/legal-notice/" target="_blank" rel="noopener noreferrer">Legal Notice</a>'
-                data-de='<a href="https://foxly.de/datenschutzerklaerung/" target="_blank" rel="noopener noreferrer">Datenschutzerklärung</a> | <a href="https://foxly.de/legal-notice/" target="_blank" rel="noopener noreferrer">Impressum</a>'
-            >
-                <a href="https://foxly.de/datenschutzerklaerung/" target="_blank" rel="noopener noreferrer">Privacy Policy</a> |
-                <a href="https://foxly.de/legal-notice/" target="_blank" rel="noopener noreferrer">Legal Notice</a>
-            </span>
-        </div>
+        <footer class="footer">
+            <div class="footer-main">
+                <div class="footer-brand">
+                    <strong>AdGuard Home Updater</strong>
+                    <span data-en="Secure updates for supported bare-metal installations."
+                          data-de="Sichere Updates für unterstützte Bare-Metal-Installationen.">Secure updates for supported bare-metal installations.</span>
+                </div>
+                <nav class="footer-links" aria-label="Legal and project links">
+                    <a href="https://github.com/foxly-it/adguard-home-updater" target="_blank" rel="noopener noreferrer">GitHub</a>
+                    <a href="https://foxly.de/datenschutzerklaerung/" target="_blank" rel="noopener noreferrer"
+                       data-en="Privacy Policy" data-de="Datenschutz">Privacy Policy</a>
+                    <a href="https://foxly.de/legal-notice/" target="_blank" rel="noopener noreferrer"
+                       data-en="Legal Notice" data-de="Impressum">Legal Notice</a>
+                </nav>
+            </div>
+            <div class="footer-bottom">
+                <span>© <span id="copyrightYear"></span> Mark Schenk</span>
+                <span data-en="Independent community project — not affiliated with AdGuard."
+                      data-de="Unabhängiges Community-Projekt – nicht mit AdGuard verbunden.">Independent community project — not affiliated with AdGuard.</span>
+            </div>
+        </footer>
 
     </div>
 
 <script>
+        let currentWizardStep = 1;
+        let advancedSettingsVisible = false;
+
+        const wizardContent = {
+            en: {
+                1: ["AdGuard Home", "Decide whether the installer may add the latest stable AdGuard Home release when no supported installation is found."],
+                2: ["Update behavior", "Choose whether updates run on a schedule and whether new versions are installed automatically or only reported."],
+                3: ["Schedule", "Set when the system checks for updates. The random delay prevents many systems from updating at exactly the same time."],
+                4: ["Safety and recovery", "Choose backup retention and what should happen when the updated DNS service does not pass its health check."],
+                5: ["Review and install", "Review every choice and warning. The installation command is shown only after all required answers are complete."]
+            },
+            de: {
+                1: ["AdGuard Home", "Entscheide, ob der Installer das aktuelle stabile AdGuard Home hinzufügen darf, wenn keine unterstützte Installation gefunden wird."],
+                2: ["Update-Verhalten", "Lege fest, ob regelmäßig geprüft wird und ob neue Versionen automatisch installiert oder nur gemeldet werden."],
+                3: ["Zeitplan", "Bestimme den Prüfzeitpunkt. Die Zufallsverzögerung verhindert, dass viele Systeme exakt gleichzeitig aktualisieren."],
+                4: ["Sicherheit und Wiederherstellung", "Lege die Anzahl der Backups und das Verhalten bei einem fehlgeschlagenen DNS-Funktionstest fest."],
+                5: ["Prüfen und installieren", "Kontrolliere jede Auswahl und jeden Hinweis. Erst danach wird der vollständige Installationsbefehl angezeigt."]
+            }
+        };
+
+        function activeWizardSteps() {
+            return document.getElementById("timerMode").value === "enabled"
+                ? [1, 2, 3, 4, 5]
+                : [1, 2, 4, 5];
+        }
+
+        function fieldIsRelevant(field) {
+            if (Number(field.dataset.step) !== currentWizardStep) return false;
+            if (field.classList.contains("advanced-setting") && !advancedSettingsVisible) return false;
+            const timerEnabled = document.getElementById("timerMode").value === "enabled";
+            if (field.classList.contains("timer-setting") && !timerEnabled) return false;
+            if (field.id === "delayEnabledField") {
+                return document.getElementById("autoInstall").value === "yes";
+            }
+            if (field.id === "delayDaysField") {
+                return document.getElementById("autoInstall").value === "yes" &&
+                    document.getElementById("delayEnabled").value === "yes";
+            }
+            if (field.id === "retentionField") {
+                return document.getElementById("multipleBackups").value === "yes";
+            }
+            if (field.id === "weekdayField") {
+                return document.getElementById("schedule").value === "weekly";
+            }
+            return true;
+        }
+
+        function renderWizard() {
+            const steps = activeWizardSteps();
+            if (!steps.includes(currentWizardStep)) currentWizardStep = currentWizardStep === 3 ? 4 : steps[0];
+            const index = steps.indexOf(currentWizardStep);
+            const lang = window.currentLang === "de" ? "de" : "en";
+            const content = wizardContent[lang][currentWizardStep];
+
+            document.getElementById("wizardStepLabel").textContent = lang === "de"
+                ? `Schritt ${index + 1} von ${steps.length}`
+                : `Step ${index + 1} of ${steps.length}`;
+            document.getElementById("wizardProgress").style.width = `${((index + 1) / steps.length) * 100}%`;
+            document.getElementById("wizardProgressTrack").setAttribute("aria-valuemax", String(steps.length));
+            document.getElementById("wizardProgressTrack").setAttribute("aria-valuenow", String(index + 1));
+            document.getElementById("wizardTitle").textContent = content[0];
+            document.getElementById("wizardDescription").textContent = content[1];
+
+            document.querySelectorAll(".config-field").forEach((field) => {
+                field.classList.toggle("wizard-visible", fieldIsRelevant(field));
+            });
+
+            const reviewStep = currentWizardStep === 5;
+            document.getElementById("configGrid").hidden = reviewStep;
+            document.getElementById("wizardReview").hidden = !reviewStep;
+            document.getElementById("presetTools").hidden = currentWizardStep !== 2;
+            const advancedToggle = document.getElementById("advancedToggle");
+            advancedToggle.hidden = currentWizardStep !== 4;
+            advancedToggle.textContent = lang === "de"
+                ? (advancedSettingsVisible ? "Erweiterte Einstellungen ausblenden" : "Erweiterte Einstellungen anzeigen")
+                : (advancedSettingsVisible ? "Hide advanced settings" : "Show advanced settings");
+            document.getElementById("wizardBack").disabled = index === 0;
+            document.getElementById("wizardNext").hidden = reviewStep;
+            document.getElementById("wizardNext").textContent = lang === "de"
+                ? (index === steps.length - 2 ? "Zusammenfassung anzeigen" : "Weiter")
+                : (index === steps.length - 2 ? "Show summary" : "Continue");
+        }
+
+        function validateWizardStep() {
+            const validation = document.getElementById("wizardValidation");
+            validation.textContent = "";
+            const fields = [...document.querySelectorAll(".config-field.wizard-visible input, .config-field.wizard-visible select")];
+            let invalid = fields.find((field) => !field.checkValidity());
+            if (!invalid && currentWizardStep === 4) {
+                invalid = [...document.querySelectorAll(".config-field.advanced-setting input, .config-field.advanced-setting select")]
+                    .find((field) => !field.checkValidity());
+                if (invalid) {
+                    advancedSettingsVisible = true;
+                    renderWizard();
+                }
+            }
+            if (!invalid) return true;
+
+            validation.textContent = window.currentLang === "de"
+                ? "Bitte beantworte die markierte Frage, bevor du fortfährst."
+                : "Please answer the highlighted question before continuing.";
+            invalid.reportValidity();
+            invalid.focus();
+            return false;
+        }
+
+        function moveWizard(direction) {
+            updateBuilder();
+            if (direction > 0 && !validateWizardStep()) return;
+            const steps = activeWizardSteps();
+            const index = steps.indexOf(currentWizardStep);
+            const nextIndex = Math.min(steps.length - 1, Math.max(0, index + direction));
+            currentWizardStep = steps[nextIndex];
+            document.getElementById("wizardValidation").textContent = "";
+            renderWizard();
+            document.getElementById("wizardHeader").scrollIntoView({behavior: "smooth", block: "start"});
+        }
+
+        function nextWizardStep() { moveWizard(1); }
+        function previousWizardStep() { moveWizard(-1); }
+        function toggleAdvancedSettings() {
+            advancedSettingsVisible = !advancedSettingsVisible;
+            renderWizard();
+        }
+
         function setLang(lang) {
             document.querySelectorAll("[data-en]").forEach((el) => {
                 const value = el.getAttribute("data-" + lang);
@@ -995,15 +1394,6 @@
             domainInput.setCustomValidity(domainValid ? "" : "Invalid DNS name");
             copyBtn.disabled = !domainValid || !installAdguard;
 
-            document.querySelectorAll(".timer-setting").forEach((field) => {
-                field.style.opacity = timer === "enabled" ? "1" : "0.45";
-            });
-            document.getElementById("weekdayField").style.display =
-                timer === "enabled" && schedule === "weekly" ? "" : "none";
-            document.getElementById("delayDaysField").style.display =
-                timer === "enabled" && updateMode === "automatic" && releaseDelay > 0 ? "" : "none";
-            document.getElementById("retentionField").style.display = retention > 1 ? "" : "none";
-
             const args = [
                 "--no-interactive", "--install-adguard", installAdguard || "no",
                 "--timer", timer, "--schedule", schedule,
@@ -1055,10 +1445,12 @@
                             ? "Es gibt keine zusätzliche Zufallsverzögerung."
                             : "Die gewählten Zeitwerte werden gespeichert und erst bei aktiviertem Timer verwendet.");
                 addReviewItem(summary, "Verhalten bei neuen Versionen",
-                    updateMode === "automatic"
+                    timer !== "enabled" ? "Nur manuelle Installationen" : updateMode === "automatic"
                         ? (releaseDelay > 0 ? `Automatisch nach ${releaseDelay} Tag(en)` : "Sofort automatisch")
                         : "Nur melden, nicht installieren",
-                    updateMode === "automatic"
+                    timer !== "enabled"
+                        ? "Ohne Timer wird keine Version automatisch installiert. sudo adguard-update startet ein Update bewusst manuell."
+                        : updateMode === "automatic"
                         ? "Diese Regel gilt für Timer-Läufe. Ein manueller Aufruf kann ein verfügbares Update sofort installieren."
                         : "Der Timer schreibt den Fund ins systemd-Journal. Installiert wird erst durch sudo adguard-update.");
                 addReviewItem(summary, "Backups",
@@ -1103,10 +1495,12 @@
                             ? "No additional random delay is used."
                             : "The selected time values are stored and used only after the timer is enabled.");
                 addReviewItem(summary, "New release behavior",
-                    updateMode === "automatic"
+                    timer !== "enabled" ? "Manual installation only" : updateMode === "automatic"
                         ? (releaseDelay > 0 ? `Automatic after ${releaseDelay} day(s)` : "Immediate automatic install")
                         : "Report only; do not install",
-                    updateMode === "automatic"
+                    timer !== "enabled"
+                        ? "Without a timer, no release is installed automatically. sudo adguard-update starts an update deliberately."
+                        : updateMode === "automatic"
                         ? "This policy applies to timer runs. A manual invocation can install an available update immediately."
                         : "The timer records the release in the systemd journal. Installation starts only with sudo adguard-update.");
                 addReviewItem(summary, "Backups",
@@ -1129,6 +1523,7 @@
                 if (healthFailure === "warn") addConfigNotice(notices, "Rollback is disabled: the new version stays active even if its DNS test fails. Use this only if you can recover manually.", "warning");
                 if (!notices.childElementCount) addConfigNotice(notices, "There are no special warnings for this selection. Checksums, backups, and automatic rollback remain enabled.");
             }
+            renderWizard();
         }
 
         function copyInstall() {
@@ -1280,6 +1675,7 @@
             }
         }
 
+        document.getElementById("copyrightYear").textContent = new Date().getFullYear();
         window.currentLang = "en";
         setLang("en");
         updateBuilder();
