@@ -23,6 +23,9 @@ jobs:
       - name: Check Bash syntax
         run: bash -n adguard-update install.sh docs/install.sh tests/integration.sh
 
+      - name: Check web configurator
+        run: node tests/web-configurator.js
+
       - name: Run ShellCheck
         run: shellcheck -x adguard-update install.sh docs/install.sh tests/integration.sh
 
