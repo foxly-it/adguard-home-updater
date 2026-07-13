@@ -2,47 +2,32 @@ name: CI
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
-
-  lint:
-
-    name: Shell Lint
+  validate:
     runs-on: ubuntu-latest
-
     steps:
-
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
-      - name: Install shellcheck
-        run: sudo apt-get install -y shellcheck
-
-      - name: Run shellcheck
+      - name: Install shell tools
         run: |
-          shellcheck adguard-update
-          shellcheck install.sh
+          sudo apt-get update
+          sudo apt-get install --yes shellcheck shfmt
 
-  release:
+      - name: Check Bash syntax
+        run: bash -n adguard-update install.sh docs/install.sh tests/integration.sh
 
-    name: Create Release
-    runs-on: ubuntu-latest
+      - name: Run ShellCheck
+        run: shellcheck -x adguard-update install.sh docs/install.sh tests/integration.sh
 
-    if: startsWith(github.ref, 'refs/tags/v')
+      - name: Check formatting
+        run: shfmt -i 4 -ci -sr -d adguard-update install.sh docs/install.sh tests/integration.sh
 
-    steps:
-
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            adguard-update
-            install.sh
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run integration tests
+        run: bash tests/integration.sh

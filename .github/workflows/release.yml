@@ -25,7 +25,16 @@ jobs:
       # -----------------------------------------------------
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
+
+      - name: Validate release sources
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes shellcheck shfmt
+          bash -n adguard-update install.sh docs/install.sh tests/integration.sh
+          shellcheck -x adguard-update install.sh docs/install.sh tests/integration.sh
+          shfmt -i 4 -ci -sr -d adguard-update install.sh docs/install.sh tests/integration.sh
+          bash tests/integration.sh
 
       # -----------------------------------------------------
       # Inject version into script
@@ -71,7 +80,7 @@ jobs:
 
       - name: Create GitHub Release
         id: release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
@@ -84,7 +93,7 @@ jobs:
       # -----------------------------------------------------
 
       - name: Upload release assets
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.ref_name }}
           files: |

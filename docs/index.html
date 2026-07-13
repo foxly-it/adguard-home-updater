@@ -230,6 +230,19 @@
             margin-bottom: 12px;
         }
 
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .config-field {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
         .install-options label {
             display: block;
             font-size: 14px;
@@ -237,9 +250,9 @@
             color: var(--muted);
         }
 
-        .install-options select {
+        .install-options select,
+        .install-options input {
             width: 100%;
-            max-width: 320px;
             padding: 10px 12px;
             border-radius: 10px;
             border: 1px solid var(--border);
@@ -247,6 +260,21 @@
             color: var(--text);
             font-size: 14px;
             outline: none;
+        }
+
+        .field-help {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .config-summary {
+            padding: 12px 14px;
+            margin-bottom: 14px;
+            border-radius: 10px;
+            background: var(--card-soft);
+            border: 1px solid var(--border);
+            color: var(--muted);
+            font-size: 13px;
         }
 
         .install-box {
@@ -428,7 +456,7 @@
 
             <div class="stat-card">
                 <div class="stat-icon">⬇️</div>
-                <div class="stat-title" data-en="Installs" data-de="Installationen">Installs</div>
+                <div class="stat-title" data-en="Release downloads" data-de="Release-Downloads">Release downloads</div>
                 <div class="stat-value" id="installCount">...</div>
             </div>
 
@@ -442,17 +470,113 @@
         <div class="card cta">
             <h2 data-en="Install" data-de="Installation">Install</h2>
 
-            <div class="install-options">
-                <label for="targetSystem" data-en="Target system:" data-de="Zielsystem:">Target system:</label>
-                <select id="targetSystem" onchange="updateInstallCmd()">
-                    <option value="linux">Linux (recommended)</option>
-                    <option value="arm">Linux (ARM / Raspberry Pi)</option>
-                    <option value="mac">macOS (testing only)</option>
-                </select>
+            <p data-en="Configure the updater. The generated command validates and stores every selected setting on the target system."
+               data-de="Konfiguriere den Updater. Der erzeugte Befehl validiert und speichert jede gewählte Einstellung auf dem Zielsystem.">
+                Configure the updater. The generated command validates and stores every selected setting on the target system.
+            </p>
+
+            <div class="toolbar-group" style="margin: 14px 0 18px;">
+                <button class="toolbar-btn" onclick="applyPreset('safe')" data-en="Example: safe automatic" data-de="Beispiel: sicher automatisch">Example: safe automatic</button>
+                <button class="toolbar-btn" onclick="applyPreset('notify')" data-en="Example: report only" data-de="Beispiel: nur melden">Example: report only</button>
+                <button class="toolbar-btn" onclick="applyPreset('manual')" data-en="Example: manual only" data-de="Beispiel: nur manuell">Example: manual only</button>
             </div>
 
+            <div class="install-options config-grid">
+                <div class="config-field">
+                    <label for="timerMode" data-en="Scheduled updates" data-de="Geplante Updates">Scheduled updates</label>
+                    <select id="timerMode" onchange="updateBuilder()">
+                        <option value="disabled">Disabled</option>
+                        <option value="enabled">Enabled</option>
+                    </select>
+                </div>
+                <div class="config-field timer-setting">
+                    <label for="autoInstall" data-en="Install updates automatically?" data-de="Updates automatisch installieren?">Install updates automatically?</label>
+                    <select id="autoInstall" onchange="updateBuilder()">
+                        <option value="yes">Yes</option><option value="no">No, only report them</option>
+                    </select>
+                    <span class="field-help" data-en="No means the timer only reports available releases in the journal. Example: review first, then run sudo adguard-update manually."
+                          data-de="Nein bedeutet: Der Timer meldet verfügbare Releases nur im Journal. Beispiel: erst prüfen, dann sudo adguard-update manuell ausführen.">Choose automatic installation or notification only.</span>
+                </div>
+                <div class="config-field timer-setting">
+                    <label for="delayEnabled" data-en="Wait before installing a new release?" data-de="Vor Installation eines neuen Releases warten?">Wait before installing a new release?</label>
+                    <select id="delayEnabled" onchange="updateBuilder()">
+                        <option value="no">No</option><option value="yes">Yes</option>
+                    </select>
+                    <span class="field-help" data-en="A waiting period lets early release problems surface. Example: 7 days for production DNS."
+                          data-de="Eine Wartezeit lässt frühe Release-Probleme sichtbar werden. Beispiel: 7 Tage für produktives DNS.">Optional release stabilization period.</span>
+                </div>
+                <div class="config-field timer-setting" id="delayDaysField">
+                    <label for="delayDays" data-en="Release delay in days" data-de="Release-Wartezeit in Tagen">Release delay in days</label>
+                    <input id="delayDays" type="number" min="1" max="30" value="7" oninput="updateBuilder()">
+                </div>
+                <div class="config-field">
+                    <label for="multipleBackups" data-en="Keep multiple backups?" data-de="Mehrere Backups aufbewahren?">Keep multiple backups?</label>
+                    <select id="multipleBackups" onchange="updateBuilder()">
+                        <option value="yes">Yes</option><option value="no">No, keep only one</option>
+                    </select>
+                    <span class="field-help" data-en="Versioned backups allow sudo adguard-update --rollback after a problematic release."
+                          data-de="Versionierte Backups erlauben nach einem problematischen Release sudo adguard-update --rollback.">Controls rollback history.</span>
+                </div>
+                <div class="config-field" id="retentionField">
+                    <label for="backupRetention" data-en="Number of backups" data-de="Anzahl der Backups">Number of backups</label>
+                    <input id="backupRetention" type="number" min="2" max="10" value="3" oninput="updateBuilder()">
+                </div>
+                <div class="config-field">
+                    <label for="healthRollback" data-en="Rollback when DNS health check fails?" data-de="Rollback bei fehlgeschlagenem DNS-Healthcheck?">Rollback when DNS health check fails?</label>
+                    <select id="healthRollback" onchange="updateBuilder()">
+                        <option value="yes">Yes (recommended)</option><option value="no">No, warn only</option>
+                    </select>
+                    <span class="field-help" data-en="Yes restores the previous binary and configuration. No keeps the new version and records a warning."
+                          data-de="Ja stellt Binary und Konfiguration wieder her. Nein behält die neue Version und protokolliert eine Warnung.">Recommended for unattended updates.</span>
+                </div>
+                <div class="config-field">
+                    <label for="healthRetries" data-en="Health-check attempts" data-de="Healthcheck-Versuche">Health-check attempts</label>
+                    <input id="healthRetries" type="number" min="1" max="60" value="15" oninput="updateBuilder()">
+                </div>
+                <div class="config-field">
+                    <label for="healthTimeout" data-en="DNS timeout in seconds" data-de="DNS-Timeout in Sekunden">DNS timeout in seconds</label>
+                    <input id="healthTimeout" type="number" min="1" max="30" value="2" oninput="updateBuilder()">
+                </div>
+                <div class="config-field timer-setting">
+                    <label for="schedule" data-en="Frequency" data-de="Häufigkeit">Frequency</label>
+                    <select id="schedule" onchange="updateBuilder()">
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                    </select>
+                </div>
+                <div class="config-field timer-setting">
+                    <label for="runTime" data-en="Local execution time" data-de="Lokale Ausführungszeit">Local execution time</label>
+                    <input id="runTime" type="time" value="03:00" onchange="updateBuilder()">
+                </div>
+                <div class="config-field timer-setting" id="weekdayField">
+                    <label for="weekday" data-en="Weekday" data-de="Wochentag">Weekday</label>
+                    <select id="weekday" onchange="updateBuilder()">
+                        <option value="Mon">Monday</option><option value="Tue">Tuesday</option>
+                        <option value="Wed">Wednesday</option><option value="Thu">Thursday</option>
+                        <option value="Fri">Friday</option><option value="Sat">Saturday</option>
+                        <option value="Sun" selected>Sunday</option>
+                    </select>
+                </div>
+                <div class="config-field timer-setting">
+                    <label for="randomDelay" data-en="Random delay" data-de="Zufallsverzögerung">Random delay</label>
+                    <select id="randomDelay" onchange="updateBuilder()">
+                        <option value="0">None</option><option value="15m">15 minutes</option>
+                        <option value="30m">30 minutes</option><option value="1h" selected>1 hour</option>
+                        <option value="2h">2 hours</option>
+                    </select>
+                    <span class="field-help" data-en="Avoids all installations updating simultaneously."
+                          data-de="Verhindert, dass alle Installationen gleichzeitig aktualisieren.">Avoids all installations updating simultaneously.</span>
+                </div>
+                <div class="config-field">
+                    <label for="healthDomain" data-en="DNS health-check domain" data-de="Domain für den DNS-Healthcheck">DNS health-check domain</label>
+                    <input id="healthDomain" type="text" value="example.org" pattern="[A-Za-z0-9.-]+" oninput="updateBuilder()">
+                </div>
+            </div>
+
+            <div class="config-summary" id="configSummary"></div>
+
             <div class="install-box">
-                <code id="installCmd">curl -fsSL https://install.foxly.de/install.sh | sudo bash</code>
+                <code id="installCmd"></code>
                 <button class="copy-btn" id="copyBtn" onclick="copyInstall()">Copy</button>
             </div>
 
@@ -460,10 +584,10 @@
 
             <div
                 class="install-hint"
-                data-en="Your browser system may differ from your target system."
-                data-de="Dein Browser-System kann vom Zielsystem abweichen."
+                data-en="Supports Linux with systemd on amd64 and arm64. Automatic updates require explicit opt-in."
+                data-de="Unterstützt Linux mit systemd auf amd64 und arm64. Automatische Updates werden nur ausdrücklich aktiviert."
             >
-                Your browser system may differ from your target system.
+                Supports Linux with systemd on amd64 and arm64. Automatic updates require explicit opt-in.
             </div>
 
             <div
@@ -479,10 +603,10 @@
             <div class="card">
                 <h2 data-en="Why this tool?" data-de="Warum dieses Tool?">Why this tool?</h2>
                 <p
-                    data-en="The built-in updater often fails on ARM systems. This script handles download, replacement, validation and rollback in a predictable way."
-                    data-de="Der integrierte Updater schlägt auf ARM-Systemen häufig fehl. Dieses Script übernimmt Download, Austausch, Prüfung und Rollback nachvollziehbar und zuverlässig."
+                    data-en="Adds mandatory release checksum verification, configuration validation, health checks, scheduling and rollback to supported bare-metal installations."
+                    data-de="Ergänzt unterstützte Bare-Metal-Installationen um verpflichtende Prüfsummen, Konfigurationsprüfung, Healthchecks, Zeitplanung und Rollback."
                 >
-                    The built-in updater often fails on ARM systems. This script handles download, replacement, validation and rollback in a predictable way.
+                    Adds mandatory release checksum verification, configuration validation, health checks, scheduling and rollback to supported bare-metal installations.
                 </p>
             </div>
 
@@ -491,12 +615,37 @@
                 <div class="mini-card">
                     <strong data-en="What it does" data-de="Was es macht">What it does</strong>
                     <p
-                        data-en="Version check, binary backup, native service stop/start, DNS verification and rollback on failure."
-                        data-de="Versionsprüfung, Binary-Backup, nativer Service-Stop/Start, DNS-Prüfung und Rollback bei Fehlern."
+                        data-en="Exact-release downloads, SHA-256 verification, configuration checks, backups, DNS verification and rollback."
+                        data-de="Release-genaue Downloads, SHA-256-Prüfung, Konfigurationschecks, Backups, DNS-Prüfung und Rollback."
                     >
                         Version check, binary backup, native service stop/start, DNS verification and rollback on failure.
                     </p>
                 </div>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <h2 data-en="Update process" data-de="Updateablauf">Update process</h2>
+                <p data-en="Before any service interruption, the updater downloads the exact stable release, verifies SHA-256, validates archive paths, checks the binary version and tests your existing configuration."
+                   data-de="Vor jeder Dienstunterbrechung lädt der Updater das exakte stabile Release, prüft SHA-256 und Archivpfade, validiert die Binary-Version und testet deine bestehende Konfiguration.">
+                    Before any service interruption, the updater verifies the release and configuration.
+                </p>
+                <p data-en="Only then are backups created and the service restarted. A failed service or DNS check restores the previous binary and configuration."
+                   data-de="Erst danach werden Backups erstellt und der Dienst neu gestartet. Ein fehlgeschlagener Dienst- oder DNS-Test stellt Binary und Konfiguration wieder her.">
+                    Backups and rollback protect the running installation.
+                </p>
+            </div>
+            <div class="card">
+                <h2 data-en="Settings and upgrades" data-de="Einstellungen und Upgrades">Settings and upgrades</h2>
+                <p data-en="Your selections are stored in /etc/default/adguard-update and reused on later installer runs. Existing timer state is preserved when upgrading a legacy installation."
+                   data-de="Deine Auswahl wird unter /etc/default/adguard-update gespeichert und bei späteren Installer-Aufrufen wiederverwendet. Beim Upgrade einer Legacy-Installation bleibt der bisherige Timerstatus erhalten.">
+                    Settings persist across installer upgrades.
+                </p>
+                <p data-en="When a release introduces new settings, the installer and updater display a migration notice with a link back to this configurator."
+                   data-de="Führt ein Release neue Einstellungen ein, zeigen Installer und Updater einen Migrationshinweis mit Link zurück zu diesem Konfigurator.">
+                    Schema changes are announced to existing users.
+                </p>
             </div>
         </div>
 
@@ -530,20 +679,46 @@
             document.getElementById("btn-en").classList.toggle("active", lang === "en");
             document.getElementById("btn-de").classList.toggle("active", lang === "de");
 
-            const targetSelect = document.getElementById("targetSystem");
             if (lang === "de") {
-                targetSelect.options[0].text = "Linux (empfohlen)";
-                targetSelect.options[1].text = "Linux (ARM / Raspberry Pi)";
-                targetSelect.options[2].text = "macOS (nur Test)";
+                document.getElementById("timerMode").options[0].text = "Deaktiviert";
+                document.getElementById("timerMode").options[1].text = "Aktiviert";
+                document.getElementById("schedule").options[0].text = "Täglich";
+                document.getElementById("schedule").options[1].text = "Wöchentlich";
+                document.getElementById("autoInstall").options[0].text = "Ja";
+                document.getElementById("autoInstall").options[1].text = "Nein, nur melden";
+                document.getElementById("delayEnabled").options[0].text = "Nein";
+                document.getElementById("delayEnabled").options[1].text = "Ja";
+                document.getElementById("multipleBackups").options[0].text = "Ja";
+                document.getElementById("multipleBackups").options[1].text = "Nein, nur eines";
+                document.getElementById("healthRollback").options[0].text = "Ja (empfohlen)";
+                document.getElementById("healthRollback").options[1].text = "Nein, nur warnen";
+                ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"]
+                    .forEach((text, index) => document.getElementById("weekday").options[index].text = text);
+                ["Keine", "15 Minuten", "30 Minuten", "1 Stunde", "2 Stunden"]
+                    .forEach((text, index) => document.getElementById("randomDelay").options[index].text = text);
                 document.getElementById("copyBtn").textContent = "Kopieren";
             } else {
-                targetSelect.options[0].text = "Linux (recommended)";
-                targetSelect.options[1].text = "Linux (ARM / Raspberry Pi)";
-                targetSelect.options[2].text = "macOS (testing only)";
+                document.getElementById("timerMode").options[0].text = "Disabled";
+                document.getElementById("timerMode").options[1].text = "Enabled";
+                document.getElementById("schedule").options[0].text = "Daily";
+                document.getElementById("schedule").options[1].text = "Weekly";
+                document.getElementById("autoInstall").options[0].text = "Yes";
+                document.getElementById("autoInstall").options[1].text = "No, report only";
+                document.getElementById("delayEnabled").options[0].text = "No";
+                document.getElementById("delayEnabled").options[1].text = "Yes";
+                document.getElementById("multipleBackups").options[0].text = "Yes";
+                document.getElementById("multipleBackups").options[1].text = "No, keep only one";
+                document.getElementById("healthRollback").options[0].text = "Yes (recommended)";
+                document.getElementById("healthRollback").options[1].text = "No, warn only";
+                ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+                    .forEach((text, index) => document.getElementById("weekday").options[index].text = text);
+                ["None", "15 minutes", "30 minutes", "1 hour", "2 hours"]
+                    .forEach((text, index) => document.getElementById("randomDelay").options[index].text = text);
                 document.getElementById("copyBtn").textContent = "Copy";
             }
 
             window.currentLang = lang;
+            updateBuilder();
         }
 
         function toggleTheme() {
@@ -552,21 +727,72 @@
             document.getElementById("themeToggle").textContent = dark ? "☀️" : "🌙";
         }
 
-        function updateInstallCmd() {
-            const system = document.getElementById("targetSystem").value;
+        function applyPreset(name) {
+            const values = {
+                safe: {timer: "enabled", mode: "yes", delay: "yes", days: 7, backups: "yes", retention: 3, rollback: "yes"},
+                notify: {timer: "enabled", mode: "no", delay: "no", days: 0, backups: "yes", retention: 3, rollback: "yes"},
+                manual: {timer: "disabled", mode: "yes", delay: "no", days: 0, backups: "yes", retention: 3, rollback: "yes"}
+            }[name];
+            document.getElementById("timerMode").value = values.timer;
+            document.getElementById("autoInstall").value = values.mode;
+            document.getElementById("delayEnabled").value = values.delay;
+            document.getElementById("delayDays").value = values.days || 7;
+            document.getElementById("multipleBackups").value = values.backups;
+            document.getElementById("backupRetention").value = values.retention;
+            document.getElementById("healthRollback").value = values.rollback;
+            updateBuilder();
+        }
+
+        function updateBuilder() {
+            const timer = document.getElementById("timerMode").value;
+            const updateMode = document.getElementById("autoInstall").value === "yes" ? "automatic" : "notify";
+            const releaseDelay = document.getElementById("delayEnabled").value === "yes"
+                ? Math.min(30, Math.max(1, Number(document.getElementById("delayDays").value) || 7)) : 0;
+            const retention = document.getElementById("multipleBackups").value === "yes"
+                ? Math.min(10, Math.max(2, Number(document.getElementById("backupRetention").value) || 3)) : 1;
+            const healthFailure = document.getElementById("healthRollback").value === "yes" ? "rollback" : "warn";
+            const healthRetries = Math.min(60, Math.max(1, Number(document.getElementById("healthRetries").value) || 15));
+            const healthTimeout = Math.min(30, Math.max(1, Number(document.getElementById("healthTimeout").value) || 2));
+            const schedule = document.getElementById("schedule").value;
+            const time = document.getElementById("runTime").value || "03:00";
+            const weekday = document.getElementById("weekday").value;
+            const delay = document.getElementById("randomDelay").value;
+            const domainInput = document.getElementById("healthDomain");
+            const domain = domainInput.value.trim();
             const cmd = document.getElementById("installCmd");
+            const domainValid = /^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?$/.test(domain);
+            domainInput.setCustomValidity(domainValid ? "" : "Invalid DNS name");
 
-            let command = "curl -fsSL https://install.foxly.de/install.sh | sudo bash";
+            document.querySelectorAll(".timer-setting").forEach((field) => {
+                field.style.opacity = timer === "enabled" ? "1" : "0.45";
+            });
+            document.getElementById("weekdayField").style.display =
+                timer === "enabled" && schedule === "weekly" ? "flex" : "none";
+            document.getElementById("delayDaysField").style.display =
+                timer === "enabled" && updateMode === "automatic" && releaseDelay > 0 ? "flex" : "none";
+            document.getElementById("retentionField").style.display = retention > 1 ? "flex" : "none";
 
-            if (system === "mac") {
-                command = "curl -fsSL https://install.foxly.de/install.sh | bash";
+            const args = [
+                "--no-interactive", "--timer", timer, "--schedule", schedule,
+                "--time", time, "--weekday", weekday, "--random-delay", delay,
+                "--health-domain", domainValid ? domain : "example.org",
+                "--update-mode", updateMode, "--release-delay", String(releaseDelay),
+                "--backup-retention", String(retention), "--health-retries", String(healthRetries),
+                "--health-timeout", String(healthTimeout), "--health-failure", healthFailure
+            ];
+            cmd.textContent = "curl -fsSL https://install.foxly.de/install.sh | sudo bash -s -- " + args.join(" ");
+
+            const summary = document.getElementById("configSummary");
+            const weekdayName = document.getElementById("weekday").selectedOptions[0].text;
+            if (window.currentLang === "de") {
+                summary.textContent = timer === "enabled"
+                    ? `Timer: ${schedule === "daily" ? "täglich" : `wöchentlich am ${weekdayName}`} um ${time} Uhr. Modus: ${updateMode === "automatic" ? `automatisch nach ${releaseDelay} Tag(en)` : "nur melden"}. ${retention} Backup(s), Healthcheck: ${healthFailure === "rollback" ? "Rollback" : "nur Warnung"}.`
+                    : `Automatische Updates: deaktiviert. Healthcheck-Domain für manuelle Updates: ${domainValid ? domain : "example.org"}.`;
+            } else {
+                summary.textContent = timer === "enabled"
+                    ? `Timer: ${schedule === "daily" ? "daily" : `every ${weekdayName}`} at ${time}. Mode: ${updateMode === "automatic" ? `automatic after ${releaseDelay} day(s)` : "report only"}. ${retention} backup(s), health failure: ${healthFailure}.`
+                    : `Automatic updates: disabled. Health-check domain for manual updates: ${domainValid ? domain : "example.org"}.`;
             }
-
-            if (system === "arm") {
-                command = "curl -fsSL https://install.foxly.de/install.sh | sudo bash";
-            }
-
-            cmd.textContent = command;
         }
 
         function copyInstall() {
@@ -644,10 +870,12 @@
  AdGuard Home Updater
  Foxly Infrastructure Tools
 </span>`,
-`<span class="log-info">[INFO]</span> Architecture detected: arm64`,
-`<span class="log-info">[INFO]</span> Installed version: 0.107.73`,
-`<span class="log-info">[INFO]</span> Latest version: 0.107.74`,
-`<span class="log-info">[INFO]</span> Downloading release...`
+`<span class="log-info">[INFO]</span> Installed version: 0.107.76`,
+`<span class="log-info">[INFO]</span> Latest version: 0.107.77`,
+`<span class="log-info">[INFO]</span> Downloading AdGuardHome_linux_arm64.tar.gz`,
+`<span class="log-ok">[OK]</span> SHA-256 checksum verified`,
+`<span class="log-info">[INFO]</span> Checking existing configuration`,
+`<span class="log-ok">[OK]</span> Configuration check passed`
         ];
 
         let cliIndex = 0;
@@ -696,14 +924,10 @@
             }
 
             const end = [
-`<span class="log-info">[INFO]</span> Verifying checksum...`,
-`<span class="log-ok">[OK]</span> Checksum valid`,
 `<span class="log-info">[INFO]</span> Stopping AdGuard Home`,
-`<span class="log-info">[INFO]</span> Installing new binary`,
-`<span class="log-info">[INFO]</span> Starting service`,
-`<span class="log-info">[INFO]</span> Running DNS health check`,
-`<span class="log-ok">[OK]</span> DNS health check successful`,
-`<span class="log-ok">[OK]</span> Update finished`
+`<span class="log-info">[INFO]</span> Starting AdGuard Home`,
+`<span class="log-ok">[OK]</span> Service and DNS health checks passed`,
+`<span class="log-ok">[OK]</span> AdGuard Home updated successfully`
             ];
 
             if (cliIndex < sequence.length + 1 + end.length) {
@@ -722,7 +946,7 @@
 
         window.currentLang = "en";
         setLang("en");
-        updateInstallCmd();
+        updateBuilder();
         loadUpdaterVersion();
         loadInstallCount();
         loadAdGuardVersion();
