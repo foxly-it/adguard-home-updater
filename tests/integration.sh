@@ -158,6 +158,7 @@ assert_contains "$TEST_ROOT/version.out" "AdGuard Home Updater"
 
 run_expect 0 "$TEST_ROOT/installer-help.out" bash "$PROJECT_DIR/install.sh" --help
 assert_contains "$TEST_ROOT/installer-help.out" "--enable-timer"
+assert_contains "$TEST_ROOT/installer-help.out" "--install-adguard"
 
 if ((EUID == 0)); then
     : > "$CALL_LOG"
@@ -210,6 +211,37 @@ if ((EUID == 0)); then
     [[ -f "$service_file" && -f "$timer_file" && -f "$settings_file" ]] || fail "Installer output is incomplete"
     assert_contains "$TEST_ROOT/install.out" "scheduled updates are disabled"
     assert_contains "$TEST_ROOT/install.out" "introduces configurable persisted settings"
+
+    fresh_adguard_dir="$TEST_ROOT/fresh/AdGuardHome"
+    fresh_updater_path="$TEST_ROOT/fresh/usr/local/sbin/adguard-update"
+    fresh_service_file="$TEST_ROOT/fresh/etc/systemd/system/adguard-update.service"
+    fresh_timer_file="$TEST_ROOT/fresh/etc/systemd/system/adguard-update.timer"
+    fresh_settings_file="$TEST_ROOT/fresh/etc/default/adguard-update"
+
+    run_expect 1 "$TEST_ROOT/install-adguard-declined.out" env \
+        ADGUARD_INSTALL_DIR="$fresh_adguard_dir" \
+        UPDATER_INSTALL_PATH="$fresh_updater_path" \
+        UPDATER_SERVICE_FILE="$fresh_service_file" \
+        UPDATER_TIMER_FILE="$fresh_timer_file" \
+        UPDATER_SETTINGS_FILE="$fresh_settings_file" \
+        bash "$PROJECT_DIR/install.sh" --no-interactive --install-adguard no
+    assert_contains "$TEST_ROOT/install-adguard-declined.out" "AdGuard Home is required"
+    [[ ! -e "$fresh_updater_path" ]] || fail "Updater was installed without AdGuard Home"
+
+    : > "$CALL_LOG"
+    run_expect 0 "$TEST_ROOT/install-adguard.out" env \
+        ADGUARD_INSTALL_DIR="$fresh_adguard_dir" \
+        UPDATER_INSTALL_PATH="$fresh_updater_path" \
+        UPDATER_SERVICE_FILE="$fresh_service_file" \
+        UPDATER_TIMER_FILE="$fresh_timer_file" \
+        UPDATER_SETTINGS_FILE="$fresh_settings_file" \
+        bash "$PROJECT_DIR/install.sh" --no-interactive --install-adguard yes
+    [[ -x "$fresh_adguard_dir/AdGuardHome" ]] || fail "AdGuard Home was not installed"
+    [[ -x "$fresh_updater_path" ]] || fail "Updater was not installed after AdGuard Home"
+    assert_contains "$CALL_LOG" "adguard install"
+    assert_contains "$TEST_ROOT/install-adguard.out" "AdGuard Home SHA-256 checksum verified"
+    assert_contains "$TEST_ROOT/install-adguard.out" "Complete the initial setup"
+    assert_contains "$fresh_service_file" "ConditionPathIsExecutable=$fresh_adguard_dir/AdGuardHome"
 
     run_expect 0 "$TEST_ROOT/install-custom.out" env \
         UPDATER_INSTALL_PATH="$updater_install_path" \

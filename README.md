@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/banner.png" alt="AdGuard Home Updater">
+  <img src="docs/assets/banner.webp" width="600" alt="AdGuard Home Updater">
 </p>
 
 # AdGuard Home Bare-Metal Updater
@@ -12,7 +12,7 @@ A security-focused update tool for supported AdGuard Home bare-metal installatio
 
 ### Overview
 
-The updater installs verified stable AdGuard Home releases on Linux systems running systemd. Before replacing the installed binary, it verifies the official SHA-256 checksum, checks the existing configuration with the new release, and creates a local backup. A failed service start or DNS health check triggers an automatic rollback.
+The updater installs verified stable AdGuard Home releases on Linux systems running systemd. The installer checks whether a supported AdGuard Home installation exists and can install the latest official stable release first with explicit permission. Before replacing an installed binary, the updater verifies the official SHA-256 checksum, checks the existing configuration with the new release, and creates a local backup. A failed service start or DNS health check triggers an automatic rollback.
 
 This is an independent community project and is not affiliated with or maintained by AdGuard.
 
@@ -37,12 +37,13 @@ The installer does not enable automatic updates by default. The [installation co
 
 ```bash
 curl -fsSL https://install.foxly.de/install.sh | sudo bash -s -- \
-  --no-interactive --timer enabled --schedule weekly --time 04:15 \
+  --no-interactive --install-adguard no --timer enabled --schedule weekly --time 04:15 \
   --weekday Sat --random-delay 30m --health-domain example.org
 ```
 
 | Installer option | Values | Default |
 | --- | --- | --- |
+| `--install-adguard` | `yes`, `no` | Ask when missing |
 | `--timer` | `enabled`, `disabled` | `disabled` |
 | `--schedule` | `daily`, `weekly` | `daily` |
 | `--time` | Local time in `HH:MM` | `03:00` |
@@ -57,6 +58,8 @@ curl -fsSL https://install.foxly.de/install.sh | sudo bash -s -- \
 | `--health-failure` | `rollback`, `warn` | `rollback` |
 
 Settings are validated and stored in `/etc/default/adguard-update`. Later installer runs reuse them unless an option explicitly overrides a value. Legacy installations preserve their existing timer state and receive a migration notice when new settings become available.
+
+Before installing the updater, the installer checks for `/opt/AdGuardHome/AdGuardHome`. If it is missing, an interactive run asks whether AdGuard Home should be installed. `--install-adguard yes` downloads the exact latest stable release from the [official AdGuard Home repository](https://github.com/AdguardTeam/AdGuardHome), verifies its published SHA-256 checksum and version, and installs its native system service. `--install-adguard no` aborts without installing the updater when AdGuard Home is missing. A newly installed AdGuard Home instance must then be configured through its setup wizard at `http://SERVER-IP:3000`.
 
 ### Commands
 
@@ -79,7 +82,7 @@ sudo adguard-update --rollback     # Restore the newest backup
 - Mandatory SHA-256 verification
 - Safe extraction into a private temporary directory
 - Binary version and configuration validation
-- Binary and configuration backup under `/opt/AdGuardHome/adguard-update-backup`
+- Binary and configuration backups under `/opt/AdGuardHome/adguard-update-backups`
 - Native service control, systemd and DNS health checks, and automatic rollback
 - Exclusive process lock and guaranteed temporary-file cleanup
 
@@ -97,7 +100,7 @@ Logs and AdGuard Home backups are deliberately preserved.
 
 ### Überblick
 
-Der Updater installiert verifizierte stabile AdGuard-Home-Releases auf Linux-Systemen mit systemd. Vor dem Austausch der installierten Binary prüft er die offizielle SHA-256-Prüfsumme, validiert die vorhandene Konfiguration mit dem neuen Release und erstellt ein lokales Backup. Schlägt der Dienststart oder DNS-Healthcheck fehl, wird automatisch die vorherige Version wiederhergestellt.
+Der Updater installiert verifizierte stabile AdGuard-Home-Releases auf Linux-Systemen mit systemd. Der Installer prüft, ob eine unterstützte AdGuard-Home-Installation vorhanden ist, und kann mit ausdrücklicher Zustimmung zuerst das aktuelle offizielle stabile Release installieren. Vor dem Austausch einer installierten Programmdatei prüft der Updater die offizielle SHA-256-Prüfsumme, validiert die vorhandene Konfiguration mit dem neuen Release und erstellt ein lokales Backup. Schlägt der Dienststart oder DNS-Healthcheck fehl, wird automatisch die vorherige Version wiederhergestellt.
 
 Dies ist ein unabhängiges Community-Projekt und wird weder von AdGuard betrieben noch offiziell unterstützt.
 
@@ -122,12 +125,13 @@ Automatische Updates sind standardmäßig deaktiviert. Der [Installationskonfigu
 
 ```bash
 curl -fsSL https://install.foxly.de/install.sh | sudo bash -s -- \
-  --no-interactive --timer enabled --schedule weekly --time 04:15 \
+  --no-interactive --install-adguard no --timer enabled --schedule weekly --time 04:15 \
   --weekday Sat --random-delay 30m --health-domain example.org
 ```
 
 | Installer-Option | Werte | Standard |
 | --- | --- | --- |
+| `--install-adguard` | `yes`, `no` | Bei Fehlen nachfragen |
 | `--timer` | `enabled`, `disabled` | `disabled` |
 | `--schedule` | `daily`, `weekly` | `daily` |
 | `--time` | Lokale Uhrzeit als `HH:MM` | `03:00` |
@@ -142,6 +146,8 @@ curl -fsSL https://install.foxly.de/install.sh | sudo bash -s -- \
 | `--health-failure` | `rollback`, `warn` | `rollback` |
 
 Die Einstellungen werden validiert und unter `/etc/default/adguard-update` gespeichert. Spätere Installer-Aufrufe verwenden sie erneut, sofern eine Option den Wert nicht ausdrücklich überschreibt. Bei Legacy-Installationen bleibt der vorhandene Timerstatus erhalten; neue Einstellungsmöglichkeiten werden durch einen Migrationshinweis angekündigt.
+
+Vor der Updater-Installation prüft der Installer `/opt/AdGuardHome/AdGuardHome`. Fehlt die Datei, fragt ein interaktiver Aufruf, ob AdGuard Home installiert werden soll. `--install-adguard yes` lädt das exakte aktuelle stabile Release aus dem [offiziellen AdGuard-Home-Repository](https://github.com/AdguardTeam/AdGuardHome), prüft die veröffentlichte SHA-256-Summe und Version und installiert den nativen Systemdienst. `--install-adguard no` bricht bei fehlendem AdGuard Home ab, ohne den Updater zu installieren. Eine neue AdGuard-Home-Installation muss anschließend über den Einrichtungsassistenten unter `http://SERVER-IP:3000` konfiguriert werden.
 
 ### Befehle
 
@@ -164,7 +170,7 @@ sudo adguard-update --rollback     # Neuestes Backup wiederherstellen
 - Verpflichtende SHA-256-Prüfung
 - Sicheres Entpacken in ein privates temporäres Verzeichnis
 - Validierung von Binary-Version und Konfiguration
-- Binary- und Konfigurationsbackup unter `/opt/AdGuardHome/adguard-update-backup`
+- Programmdatei- und Konfigurationsbackups unter `/opt/AdGuardHome/adguard-update-backups`
 - Native Dienststeuerung, systemd- und DNS-Healthchecks sowie automatischer Rollback
 - Exklusive Prozesssperre und garantierte Bereinigung temporärer Dateien
 

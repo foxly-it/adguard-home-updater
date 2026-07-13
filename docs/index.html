@@ -9,7 +9,7 @@
     <meta property="og:title" content="AdGuard Home Updater">
     <meta property="og:description" content="Safe and automated AdGuard Home updates for bare-metal installations.">
     <meta property="og:type" content="website">
-    <meta property="og:image" content="https://github.com/foxly-it/adguard-home-updater/blob/main/assets/banner.png?raw=true">
+    <meta property="og:image" content="https://install.foxly.de/assets/banner.webp">
 
     <style>
         :root {
@@ -72,7 +72,7 @@
 
         .topbar {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-end;
             align-items: center;
             gap: 12px;
             margin-bottom: 18px;
@@ -114,10 +114,12 @@
 
         .header img {
             width: 100%;
-            max-width: 420px;
             height: auto;
-            display: inline-block;
-            margin-bottom: 12px;
+            display: block;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.24);
         }
 
         .header h1 {
@@ -238,21 +240,25 @@
         }
 
         .config-field {
-            display: flex;
-            flex-direction: column;
+            display: grid;
+            grid-template-rows: minmax(3.6em, auto) 42px auto;
+            align-content: start;
             gap: 7px;
         }
 
         .install-options label {
-            display: block;
+            display: flex;
+            align-items: flex-end;
             font-size: 14px;
-            margin-bottom: 8px;
+            line-height: 1.3;
+            margin: 0;
             color: var(--muted);
         }
 
         .install-options select,
         .install-options input {
             width: 100%;
+            min-height: 42px;
             padding: 10px 12px;
             border-radius: 10px;
             border: 1px solid var(--border);
@@ -267,14 +273,155 @@
             color: var(--muted);
         }
 
-        .config-summary {
-            padding: 12px 14px;
-            margin-bottom: 14px;
-            border-radius: 10px;
-            background: var(--card-soft);
-            border: 1px solid var(--border);
+        .config-review {
+            margin: 4px 0 20px;
+            padding: 18px;
+            border: 2px solid rgba(103, 178, 121, 0.45);
+            border-radius: 14px;
+            background: linear-gradient(145deg, var(--card) 0%, var(--bg-soft) 100%);
+        }
+
+        .review-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 6px;
+        }
+
+        .review-header h3,
+        .command-heading {
+            margin: 0;
+            font-size: 1.05rem;
+        }
+
+        .review-kicker {
+            display: block;
+            margin-bottom: 4px;
+            color: var(--accent-strong);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .review-state {
+            flex: 0 0 auto;
+            padding: 6px 9px;
+            border: 1px solid rgba(103, 178, 121, 0.5);
+            border-radius: 999px;
+            background: rgba(103, 178, 121, 0.12);
+            color: var(--accent-strong);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .review-state.warning {
+            border-color: rgba(217, 119, 6, 0.45);
+            background: rgba(245, 158, 11, 0.12);
+            color: #b45309;
+        }
+
+        body.dark .review-state.warning {
+            color: #fbbf24;
+        }
+
+        .review-intro,
+        .command-intro {
+            margin: 0 0 14px;
             color: var(--muted);
             font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .config-summary {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .review-item {
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--card);
+        }
+
+        .review-item-title {
+            display: block;
+            margin-bottom: 4px;
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .review-item-value {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--text);
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .review-item-detail {
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
+        .config-notices {
+            display: grid;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .config-notice {
+            padding: 10px 12px;
+            border-left: 4px solid var(--accent);
+            border-radius: 8px;
+            background: rgba(103, 178, 121, 0.1);
+            color: var(--text);
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
+        .config-notice.warning {
+            border-left-color: #d97706;
+            background: rgba(245, 158, 11, 0.12);
+        }
+
+        .config-notice.error {
+            border-left-color: #dc2626;
+            background: rgba(239, 68, 68, 0.12);
+        }
+
+        .command-heading {
+            margin-bottom: 5px;
+        }
+
+        .command-steps {
+            margin: 0 0 14px;
+            padding-left: 22px;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.55;
+        }
+
+        .command-steps li + li {
+            margin-top: 4px;
+        }
+
+        .command-scope {
+            margin: 0 0 12px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            background: var(--card-soft);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-size: 12px;
+            line-height: 1.45;
         }
 
         .install-box {
@@ -319,6 +466,11 @@
 
         .copy-btn:hover {
             background: var(--accent-strong);
+        }
+
+        .copy-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
         }
 
         .copy-feedback {
@@ -413,10 +565,22 @@
             .stat-card {
                 border-radius: 14px;
             }
+
+            .config-field {
+                grid-template-rows: auto 42px auto;
+            }
+
+            .review-header {
+                flex-direction: column;
+            }
+
+            .config-summary {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
-<body>
+<body class="dark">
     <div class="container">
 
         <div class="topbar">
@@ -425,13 +589,10 @@
                 <button class="toolbar-btn" id="btn-de" onclick="setLang('de')">DE</button>
             </div>
 
-            <div class="toolbar-group">
-                <button class="toolbar-btn" id="themeToggle" onclick="toggleTheme()">🌙</button>
-            </div>
         </div>
 
         <div class="header">
-            <img src="https://github.com/foxly-it/adguard-home-updater/blob/main/assets/banner.png?raw=true" alt="AdGuard Home Updater Banner">
+            <img src="assets/banner.webp" width="1200" height="600" fetchpriority="high" decoding="async" alt="AdGuard Home Updater secure network update illustration">
             <h1 data-en="AdGuard Home Updater" data-de="AdGuard Home Updater">AdGuard Home Updater</h1>
             <p
                 data-en="Safe and automated updates for bare-metal installations."
@@ -482,6 +643,19 @@
             </div>
 
             <div class="install-options config-grid">
+                <div class="config-field">
+                    <label for="installAdguard"
+                           data-en="Install AdGuard Home if it is missing?"
+                           data-de="AdGuard Home installieren, falls es fehlt?">Install AdGuard Home if it is missing?</label>
+                    <select id="installAdguard" onchange="updateBuilder()" required>
+                        <option value="" selected disabled data-en="Please select" data-de="Bitte auswählen">Please select</option>
+                        <option value="yes" data-en="Yes, install it if needed" data-de="Ja, bei Bedarf mitinstallieren">Yes, install it if needed</option>
+                        <option value="no" data-en="No, abort if it is missing" data-de="Nein, bei Fehlen abbrechen">No, abort if it is missing</option>
+                    </select>
+                    <span class="field-help"
+                          data-en="Yes downloads the latest stable official release, verifies its SHA-256 checksum, and installs its system service."
+                          data-de="Ja lädt das aktuelle stabile offizielle Release, prüft dessen SHA-256-Summe und installiert den Systemdienst.">Choose whether the installer may add AdGuard Home.</span>
+                </div>
                 <div class="config-field">
                     <label for="timerMode" data-en="Scheduled updates" data-de="Geplante Updates">Scheduled updates</label>
                     <select id="timerMode" onchange="updateBuilder()">
@@ -573,7 +747,41 @@
                 </div>
             </div>
 
-            <div class="config-summary" id="configSummary"></div>
+            <section class="config-review" aria-labelledby="reviewTitle">
+                <div class="review-header">
+                    <div>
+                        <span class="review-kicker" data-en="Review before installation" data-de="Vor der Installation prüfen">Review before installation</span>
+                        <h3 id="reviewTitle" data-en="Your selected configuration" data-de="Deine gewählte Konfiguration">Your selected configuration</h3>
+                    </div>
+                    <span class="review-state" id="reviewState">Ready</span>
+                </div>
+                <p class="review-intro"
+                   data-en="This is what the generated command will configure. Read each item once before copying the command."
+                   data-de="Genau diese Einstellungen übernimmt der erzeugte Befehl. Lies jeden Punkt einmal durch, bevor du den Befehl kopierst.">
+                    This is what the generated command will configure. Read each item once before copying the command.
+                </p>
+                <div class="config-summary" id="configSummary" aria-live="polite"></div>
+                <div class="config-notices" id="configNotices" role="status"></div>
+            </section>
+
+            <h3 class="command-heading" data-en="Your installation command" data-de="Dein Installationsbefehl">Your installation command</h3>
+            <p class="command-intro"
+               data-en="The command downloads the verified installer and passes exactly the settings summarized above. It requires sudo because it installs a system service."
+               data-de="Der Befehl lädt den geprüften Installer und übergibt exakt die oben zusammengefassten Einstellungen. sudo ist erforderlich, weil ein Systemdienst installiert wird.">
+                The command downloads the verified installer and passes exactly the settings summarized above.
+            </p>
+            <ol class="command-steps">
+                <li data-en="Click Copy to copy the complete command." data-de="Klicke auf Kopieren, um den vollständigen Befehl zu übernehmen.">Click Copy to copy the complete command.</li>
+                <li data-en="Open a terminal on the Linux system that runs AdGuard Home and paste the command."
+                    data-de="Öffne ein Terminal auf dem Linux-System, auf dem AdGuard Home läuft, und füge den Befehl ein.">Open a terminal on the Linux system and paste the command.</li>
+                <li data-en="Press Enter and enter your sudo password if prompted. The password is not shown while typing."
+                    data-de="Drücke Enter und gib bei Nachfrage dein sudo-Passwort ein. Während der Eingabe werden keine Zeichen angezeigt.">Press Enter and enter your sudo password if prompted.</li>
+            </ol>
+            <p class="command-scope"
+               data-en="Important: The installer first checks for AdGuard Home and installs it only if it is missing and you allowed that above. An existing AdGuard Home installation is not updated immediately. Later updates follow your timer choice or start when you run sudo adguard-update manually."
+               data-de="Wichtig: Der Installer prüft zuerst AdGuard Home und installiert es nur, wenn es fehlt und du dies oben erlaubt hast. Eine vorhandene AdGuard-Home-Installation wird nicht sofort aktualisiert. Spätere Updates folgen deiner Timer-Auswahl oder starten mit sudo adguard-update manuell.">
+                The installer checks for AdGuard Home first and installs it only with your permission.
+            </p>
 
             <div class="install-box">
                 <code id="installCmd"></code>
@@ -721,12 +929,6 @@
             updateBuilder();
         }
 
-        function toggleTheme() {
-            document.body.classList.toggle("dark");
-            const dark = document.body.classList.contains("dark");
-            document.getElementById("themeToggle").textContent = dark ? "☀️" : "🌙";
-        }
-
         function applyPreset(name) {
             const values = {
                 safe: {timer: "enabled", mode: "yes", delay: "yes", days: 7, backups: "yes", retention: 3, rollback: "yes"},
@@ -743,7 +945,35 @@
             updateBuilder();
         }
 
+        function addReviewItem(container, title, value, detail) {
+            const item = document.createElement("div");
+            item.className = "review-item";
+
+            const itemTitle = document.createElement("span");
+            itemTitle.className = "review-item-title";
+            itemTitle.textContent = title;
+
+            const itemValue = document.createElement("strong");
+            itemValue.className = "review-item-value";
+            itemValue.textContent = value;
+
+            const itemDetail = document.createElement("span");
+            itemDetail.className = "review-item-detail";
+            itemDetail.textContent = detail;
+
+            item.append(itemTitle, itemValue, itemDetail);
+            container.appendChild(item);
+        }
+
+        function addConfigNotice(container, message, type = "info") {
+            const notice = document.createElement("div");
+            notice.className = `config-notice ${type}`;
+            notice.textContent = message;
+            container.appendChild(notice);
+        }
+
         function updateBuilder() {
+            const installAdguard = document.getElementById("installAdguard").value;
             const timer = document.getElementById("timerMode").value;
             const updateMode = document.getElementById("autoInstall").value === "yes" ? "automatic" : "notify";
             const releaseDelay = document.getElementById("delayEnabled").value === "yes"
@@ -760,20 +990,23 @@
             const domainInput = document.getElementById("healthDomain");
             const domain = domainInput.value.trim();
             const cmd = document.getElementById("installCmd");
+            const copyBtn = document.getElementById("copyBtn");
             const domainValid = /^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?$/.test(domain);
             domainInput.setCustomValidity(domainValid ? "" : "Invalid DNS name");
+            copyBtn.disabled = !domainValid || !installAdguard;
 
             document.querySelectorAll(".timer-setting").forEach((field) => {
                 field.style.opacity = timer === "enabled" ? "1" : "0.45";
             });
             document.getElementById("weekdayField").style.display =
-                timer === "enabled" && schedule === "weekly" ? "flex" : "none";
+                timer === "enabled" && schedule === "weekly" ? "" : "none";
             document.getElementById("delayDaysField").style.display =
-                timer === "enabled" && updateMode === "automatic" && releaseDelay > 0 ? "flex" : "none";
-            document.getElementById("retentionField").style.display = retention > 1 ? "flex" : "none";
+                timer === "enabled" && updateMode === "automatic" && releaseDelay > 0 ? "" : "none";
+            document.getElementById("retentionField").style.display = retention > 1 ? "" : "none";
 
             const args = [
-                "--no-interactive", "--timer", timer, "--schedule", schedule,
+                "--no-interactive", "--install-adguard", installAdguard || "no",
+                "--timer", timer, "--schedule", schedule,
                 "--time", time, "--weekday", weekday, "--random-delay", delay,
                 "--health-domain", domainValid ? domain : "example.org",
                 "--update-mode", updateMode, "--release-delay", String(releaseDelay),
@@ -783,15 +1016,118 @@
             cmd.textContent = "curl -fsSL https://install.foxly.de/install.sh | sudo bash -s -- " + args.join(" ");
 
             const summary = document.getElementById("configSummary");
+            const notices = document.getElementById("configNotices");
+            const reviewState = document.getElementById("reviewState");
             const weekdayName = document.getElementById("weekday").selectedOptions[0].text;
-            if (window.currentLang === "de") {
-                summary.textContent = timer === "enabled"
-                    ? `Timer: ${schedule === "daily" ? "täglich" : `wöchentlich am ${weekdayName}`} um ${time} Uhr. Modus: ${updateMode === "automatic" ? `automatisch nach ${releaseDelay} Tag(en)` : "nur melden"}. ${retention} Backup(s), Healthcheck: ${healthFailure === "rollback" ? "Rollback" : "nur Warnung"}.`
-                    : `Automatische Updates: deaktiviert. Healthcheck-Domain für manuelle Updates: ${domainValid ? domain : "example.org"}.`;
+            const delayName = document.getElementById("randomDelay").selectedOptions[0].text;
+            const usedDomain = domainValid ? domain : "example.org";
+            const german = window.currentLang === "de";
+            const caution = !installAdguard || !domainValid || healthFailure === "warn" || retention === 1 ||
+                (timer === "enabled" && updateMode === "automatic" && releaseDelay === 0);
+
+            summary.replaceChildren();
+            notices.replaceChildren();
+            reviewState.className = caution ? "review-state warning" : "review-state";
+            reviewState.textContent = german
+                ? (!installAdguard || !domainValid ? "Eingabe korrigieren" : caution ? "Hinweise prüfen" : "Bereit zur Installation")
+                : (!installAdguard || !domainValid ? "Correct input" : caution ? "Review notices" : "Ready to install");
+
+            if (german) {
+                addReviewItem(summary, "AdGuard-Home-Voraussetzung",
+                    !installAdguard ? "Auswahl erforderlich" : installAdguard === "yes" ? "Bei Bedarf installieren" : "Muss bereits installiert sein",
+                    installAdguard === "yes"
+                        ? "Fehlt /opt/AdGuardHome/AdGuardHome, wird das aktuelle stabile offizielle Release vor dem Updater sicher installiert."
+                        : installAdguard === "no"
+                            ? "Fehlt AdGuard Home, bricht der Installer ohne Installation des Updaters ab."
+                            : "Entscheide, ob der Installer AdGuard Home hinzufügen darf, falls es noch nicht vorhanden ist.");
+                addReviewItem(summary, "Automatisierung",
+                    timer === "enabled" ? "Timer aktiviert" : "Nur manuelle Updates",
+                    timer === "enabled"
+                        ? "Der Linux-Zeitdienst (systemd) startet den Updater selbstständig nach dem gewählten Zeitplan."
+                        : "Es läuft kein automatischer Check. Ein Update startet nur mit sudo adguard-update.");
+                addReviewItem(summary, "Zeitplan",
+                    timer === "enabled"
+                        ? (schedule === "daily" ? `Täglich um ${time} Uhr` : `Jeden ${weekdayName} um ${time} Uhr`)
+                        : "Nicht aktiv",
+                    timer === "enabled" && delay !== "0"
+                        ? `Der tatsächliche Start darf sich zufällig um bis zu ${delayName} verschieben, damit nicht alle Systeme gleichzeitig aktualisieren.`
+                        : timer === "enabled"
+                            ? "Es gibt keine zusätzliche Zufallsverzögerung."
+                            : "Die gewählten Zeitwerte werden gespeichert und erst bei aktiviertem Timer verwendet.");
+                addReviewItem(summary, "Verhalten bei neuen Versionen",
+                    updateMode === "automatic"
+                        ? (releaseDelay > 0 ? `Automatisch nach ${releaseDelay} Tag(en)` : "Sofort automatisch")
+                        : "Nur melden, nicht installieren",
+                    updateMode === "automatic"
+                        ? "Diese Regel gilt für Timer-Läufe. Ein manueller Aufruf kann ein verfügbares Update sofort installieren."
+                        : "Der Timer schreibt den Fund ins systemd-Journal. Installiert wird erst durch sudo adguard-update.");
+                addReviewItem(summary, "Backups",
+                    retention === 1 ? "1 Backup behalten" : `${retention} Backups behalten`,
+                    "Vor jedem AdGuard-Home-Update werden Programmdatei und Konfiguration unter /opt/AdGuardHome/adguard-update-backups gespeichert.");
+                addReviewItem(summary, "DNS-Funktionstest",
+                    `${usedDomain}: ${healthRetries} Versuche mit je ${healthTimeout} s`,
+                    healthFailure === "rollback"
+                        ? "Startet der Dienst nicht oder antwortet DNS nicht, wird automatisch das vorherige Backup wiederhergestellt."
+                        : "Bei einem Fehler bleibt die neue Version installiert; der Updater protokolliert lediglich eine Warnung.");
+
+                if (!installAdguard) addConfigNotice(notices, "Wähle zuerst aus, ob AdGuard Home bei Bedarf installiert werden darf. Der Kopierknopf bleibt bis dahin gesperrt.", "error");
+                if (installAdguard === "yes") addConfigNotice(notices, "Wird AdGuard Home neu installiert, öffne danach http://SERVER-IP:3000 und schließe den offiziellen Einrichtungsassistenten ab.");
+                if (installAdguard === "no") addConfigNotice(notices, "Der Installer prüft /opt/AdGuardHome/AdGuardHome. Fehlt diese Datei, beendet er sich ohne Änderungen am Updater.");
+                if (!domainValid) addConfigNotice(notices, "Die Healthcheck-Domain ist ungültig. Bis zur Korrektur verwendet die Vorschau example.org; der Kopierknopf bleibt gesperrt.", "error");
+                if (timer === "disabled") addConfigNotice(notices, "Der Timer ist deaktiviert: Es erfolgen weder automatische Prüfungen noch automatische Installationen.");
+                if (timer === "enabled" && updateMode === "notify") addConfigNotice(notices, "Nur-Melden-Modus: Prüfe Hinweise mit journalctl -u adguard-update und starte gewünschte Updates anschließend manuell.");
+                if (timer === "enabled" && updateMode === "automatic" && releaseDelay === 0) addConfigNotice(notices, "Neue Releases werden beim nächsten Timer-Lauf ohne Wartezeit installiert. Für wichtige DNS-Systeme sind einige Tage Verzögerung oft sinnvoll.", "warning");
+                if (retention === 1) addConfigNotice(notices, "Es bleibt nur das neueste Backup erhalten. Mehrere Backups geben dir bei spät erkannten Problemen mehr Rücksprungmöglichkeiten.", "warning");
+                if (healthFailure === "warn") addConfigNotice(notices, "Rollback ist deaktiviert: Selbst bei fehlgeschlagenem DNS-Test bleibt die neue Version aktiv. Verwende das nur, wenn du Fehler selbst beheben kannst.", "warning");
+                if (!notices.childElementCount) addConfigNotice(notices, "Für diese Auswahl sind keine besonderen Warnungen vorhanden. Prüfsummen, Backups und automatisches Rollback bleiben aktiv.");
             } else {
-                summary.textContent = timer === "enabled"
-                    ? `Timer: ${schedule === "daily" ? "daily" : `every ${weekdayName}`} at ${time}. Mode: ${updateMode === "automatic" ? `automatic after ${releaseDelay} day(s)` : "report only"}. ${retention} backup(s), health failure: ${healthFailure}.`
-                    : `Automatic updates: disabled. Health-check domain for manual updates: ${domainValid ? domain : "example.org"}.`;
+                addReviewItem(summary, "AdGuard Home prerequisite",
+                    !installAdguard ? "Selection required" : installAdguard === "yes" ? "Install when needed" : "Must already be installed",
+                    installAdguard === "yes"
+                        ? "If /opt/AdGuardHome/AdGuardHome is missing, the latest stable official release is installed securely before the updater."
+                        : installAdguard === "no"
+                            ? "If AdGuard Home is missing, the installer stops without installing the updater."
+                            : "Choose whether the installer may add AdGuard Home when it is not present yet.");
+                addReviewItem(summary, "Automation",
+                    timer === "enabled" ? "Timer enabled" : "Manual updates only",
+                    timer === "enabled"
+                        ? "systemd starts the updater automatically according to the selected schedule."
+                        : "No automatic check runs. An update starts only with sudo adguard-update.");
+                addReviewItem(summary, "Schedule",
+                    timer === "enabled"
+                        ? (schedule === "daily" ? `Daily at ${time}` : `Every ${weekdayName} at ${time}`)
+                        : "Not active",
+                    timer === "enabled" && delay !== "0"
+                        ? `The actual start may be randomly delayed by up to ${delayName}, preventing all systems from updating together.`
+                        : timer === "enabled"
+                            ? "No additional random delay is used."
+                            : "The selected time values are stored and used only after the timer is enabled.");
+                addReviewItem(summary, "New release behavior",
+                    updateMode === "automatic"
+                        ? (releaseDelay > 0 ? `Automatic after ${releaseDelay} day(s)` : "Immediate automatic install")
+                        : "Report only; do not install",
+                    updateMode === "automatic"
+                        ? "This policy applies to timer runs. A manual invocation can install an available update immediately."
+                        : "The timer records the release in the systemd journal. Installation starts only with sudo adguard-update.");
+                addReviewItem(summary, "Backups",
+                    retention === 1 ? "Keep 1 backup" : `Keep ${retention} backups`,
+                    "Before each AdGuard Home update, the binary and configuration are stored in /opt/AdGuardHome/adguard-update-backups.");
+                addReviewItem(summary, "DNS health check",
+                    `${usedDomain}: ${healthRetries} attempts at ${healthTimeout} s each`,
+                    healthFailure === "rollback"
+                        ? "If the service does not start or DNS does not respond, the previous backup is restored automatically."
+                        : "On failure, the new version remains installed and the updater only records a warning.");
+
+                if (!installAdguard) addConfigNotice(notices, "First choose whether AdGuard Home may be installed when needed. The copy button remains disabled until then.", "error");
+                if (installAdguard === "yes") addConfigNotice(notices, "If AdGuard Home is installed now, open http://SERVER-IP:3000 afterward and complete its official setup wizard.");
+                if (installAdguard === "no") addConfigNotice(notices, "The installer checks /opt/AdGuardHome/AdGuardHome. If that file is missing, it exits without changing the updater.");
+                if (!domainValid) addConfigNotice(notices, "The health-check domain is invalid. The preview uses example.org until corrected, and the copy button remains disabled.", "error");
+                if (timer === "disabled") addConfigNotice(notices, "The timer is disabled: no automatic checks or automatic installations will run.");
+                if (timer === "enabled" && updateMode === "notify") addConfigNotice(notices, "Report-only mode: review notices with journalctl -u adguard-update, then start approved updates manually.");
+                if (timer === "enabled" && updateMode === "automatic" && releaseDelay === 0) addConfigNotice(notices, "New releases are installed on the next timer run without a waiting period. A short delay is often preferable for important DNS systems.", "warning");
+                if (retention === 1) addConfigNotice(notices, "Only the newest backup is retained. Multiple backups provide more recovery points for problems discovered later.", "warning");
+                if (healthFailure === "warn") addConfigNotice(notices, "Rollback is disabled: the new version stays active even if its DNS test fails. Use this only if you can recover manually.", "warning");
+                if (!notices.childElementCount) addConfigNotice(notices, "There are no special warnings for this selection. Checksums, backups, and automatic rollback remain enabled.");
             }
         }
 

@@ -4,6 +4,9 @@ set -Eeuo pipefail
 INSTALLER_VERSION="2.0.0"
 SETTINGS_VERSION="3"
 REPO="${UPDATER_REPO:-foxly-it/adguard-home-updater}"
+ADGUARD_REPO="${ADGUARD_REPO:-AdguardTeam/AdGuardHome}"
+ADGUARD_INSTALL_DIR="${ADGUARD_INSTALL_DIR:-/opt/AdGuardHome}"
+ADGUARD_BINARY="${ADGUARD_BINARY:-$ADGUARD_INSTALL_DIR/AdGuardHome}"
 INSTALL_PATH="${UPDATER_INSTALL_PATH:-/usr/local/sbin/adguard-update}"
 SERVICE_FILE="${UPDATER_SERVICE_FILE:-/etc/systemd/system/adguard-update.service}"
 TIMER_FILE="${UPDATER_TIMER_FILE:-/etc/systemd/system/adguard-update.timer}"
@@ -24,6 +27,7 @@ BACKUP_RETENTION=""
 HEALTH_RETRIES=""
 HEALTH_TIMEOUT=""
 HEALTH_FAILURE=""
+INSTALL_ADGUARD=""
 TIMER_EXPLICIT=false
 TMP_DIR=""
 MIGRATION_NEEDED=false
@@ -49,6 +53,7 @@ Options:
   --health-retries COUNT    Retry the DNS check 1 to 60 times
   --health-timeout SECONDS  Use a per-query timeout from 1 to 30 seconds
   --health-failure ACTION   rollback or warn
+  --install-adguard yes|no  Install stable AdGuard Home when it is missing
   --enable-timer            Compatibility alias for --timer enabled
   --disable-timer           Compatibility alias for --timer disabled
   --no-interactive          Never prompt; use supplied or stored settings
@@ -67,6 +72,148 @@ require_commands() {
 
 extract_tag() { sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1; }
 checksum_for() { awk -v name="$2" '$2 == name || $2 == "./" name {print $1; exit}' "$1"; }
+
+architecture() {
+    case "$(uname -m)" in
+        x86_64 | amd64) printf '%s\n' amd64 ;;
+        aarch64 | arm64) printf '%s\n' arm64 ;;
+        *)
+            fail "Unsupported architecture: $(uname -m). Supported: amd64, arm64"
+            return 1
+            ;;
+    esac
+}
+
+validate_archive_paths() {
+    local archive=$1 entry clean
+    while IFS= read -r entry; do
+        clean=${entry#./}
+        case "$clean" in
+            /* | ../* | */../* | */..)
+                fail "Unsafe archive path: $entry"
+                return 1
+                ;;
+        esac
+    done < <(tar -tzf "$archive")
+}
+
+prompt_yes_no() {
+    local prompt=$1 answer=n
+    if [[ -t 0 ]]; then
+        read -r -p "$prompt" answer
+    elif [[ -r /dev/tty && -w /dev/tty ]]; then
+        printf '%s' "$prompt" > /dev/tty
+        IFS= read -r answer < /dev/tty
+    else
+        return 1
+    fi
+    [[ "$answer" =~ ^[Yy]$ ]]
+}
+
+install_adguard_home() {
+    local arch tag archive_name release_url archive checksums expected actual
+    local extracted_dir extracted_binary extracted_version latest
+
+    [[ "$ADGUARD_INSTALL_DIR" == /* && "${ADGUARD_INSTALL_DIR##*/}" == AdGuardHome ]] || {
+        fail "AdGuard Home installation directory must be an absolute path ending in /AdGuardHome"
+        return 1
+    }
+    if [[ -e "$ADGUARD_INSTALL_DIR" ]]; then
+        if [[ ! -d "$ADGUARD_INSTALL_DIR" || -n "$(find "$ADGUARD_INSTALL_DIR" -mindepth 1 -maxdepth 1 -print -quit)" ]]; then
+            fail "Cannot install AdGuard Home: $ADGUARD_INSTALL_DIR already exists and is not an empty directory"
+            return 1
+        fi
+        rmdir "$ADGUARD_INSTALL_DIR"
+    fi
+
+    arch=$(architecture)
+    tag=$(curl --fail --silent --show-error --location --retry 3 \
+        "$GITHUB_API/repos/$ADGUARD_REPO/releases/latest" | extract_tag)
+    [[ -n "$tag" ]] || {
+        fail "Could not determine the latest stable AdGuard Home release"
+        return 1
+    }
+
+    archive_name="AdGuardHome_linux_${arch}.tar.gz"
+    release_url="https://github.com/$ADGUARD_REPO/releases/download/$tag"
+    archive="$TMP_DIR/$archive_name"
+    checksums="$TMP_DIR/adguard-checksums.txt"
+    printf 'Downloading official AdGuard Home release %s for %s.\n' "$tag" "$arch"
+    curl --fail --silent --show-error --location --retry 3 --retry-all-errors \
+        --connect-timeout 10 --max-time 300 --output "$archive" "$release_url/$archive_name"
+    curl --fail --silent --show-error --location --retry 3 --retry-all-errors \
+        --connect-timeout 10 --max-time 60 --output "$checksums" "$release_url/checksums.txt"
+
+    expected=$(checksum_for "$checksums" "$archive_name")
+    actual=$(sha256sum "$archive" | awk '{print $1}')
+    [[ "$expected" =~ ^[[:xdigit:]]{64}$ && "$actual" == "$expected" ]] || {
+        fail "AdGuard Home SHA-256 checksum verification failed"
+        return 1
+    }
+    printf 'AdGuard Home SHA-256 checksum verified.\n'
+
+    validate_archive_paths "$archive"
+    extracted_dir="$TMP_DIR/adguard-extracted"
+    mkdir -m 0700 "$extracted_dir"
+    tar --extract --gzip --file "$archive" --directory "$extracted_dir" \
+        --no-same-owner --no-same-permissions
+    extracted_binary="$extracted_dir/AdGuardHome/AdGuardHome"
+    [[ -f "$extracted_binary" ]] || {
+        fail "Expected AdGuard Home binary is missing from the official archive"
+        return 1
+    }
+    chmod 0755 "$extracted_binary"
+    extracted_version=$("$extracted_binary" --version 2> /dev/null |
+        grep -oE 'v?[0-9]+\.[0-9]+\.[0-9]+' | head -n 1 | sed 's/^v//')
+    latest=${tag#v}
+    [[ "$extracted_version" == "$latest" ]] || {
+        fail "AdGuard Home archive version mismatch: expected $latest, got ${extracted_version:-unknown}"
+        return 1
+    }
+
+    mkdir -p "$(dirname "$ADGUARD_INSTALL_DIR")"
+    mv "$extracted_dir/AdGuardHome" "$ADGUARD_INSTALL_DIR"
+    if ! (cd "$ADGUARD_INSTALL_DIR" && ./AdGuardHome -s install); then
+        (cd "$ADGUARD_INSTALL_DIR" && ./AdGuardHome -s uninstall > /dev/null 2>&1) || true
+        rm -rf -- "$ADGUARD_INSTALL_DIR"
+        fail "AdGuard Home could not be installed as a system service"
+        return 1
+    fi
+    [[ -x "$ADGUARD_BINARY" ]] || {
+        fail "AdGuard Home installation did not create an executable binary"
+        return 1
+    }
+    printf 'AdGuard Home %s is installed. Complete the initial setup at http://SERVER-IP:3000.\n' "$tag"
+}
+
+ensure_adguard_home() {
+    if [[ -x "$ADGUARD_BINARY" ]]; then
+        printf 'Existing AdGuard Home installation found at %s.\n' "$ADGUARD_BINARY"
+        return 0
+    fi
+
+    case "$INSTALL_ADGUARD" in
+        yes) install_adguard_home ;;
+        no)
+            fail "AdGuard Home is required but was not found at $ADGUARD_BINARY"
+            fail "Installation was cancelled because --install-adguard no was selected"
+            return 1
+            ;;
+        "")
+            printf 'AdGuard Home was not found at %s.\n' "$ADGUARD_BINARY"
+            if $INTERACTIVE && prompt_yes_no "Install the latest stable AdGuard Home release now? [y/N]: "; then
+                install_adguard_home
+            else
+                fail "AdGuard Home is required. Re-run with --install-adguard yes or use https://install.foxly.de"
+                return 1
+            fi
+            ;;
+        *)
+            fail "--install-adguard must be yes or no"
+            return 1
+            ;;
+    esac
+}
 
 stored_setting() {
     local key=$1
@@ -127,6 +274,10 @@ validate_settings() {
     }
     [[ "$HEALTH_FAILURE" == rollback || "$HEALTH_FAILURE" == warn ]] || {
         fail "--health-failure must be rollback or warn"
+        return 1
+    }
+    [[ -z "$INSTALL_ADGUARD" || "$INSTALL_ADGUARD" == yes || "$INSTALL_ADGUARD" == no ]] || {
+        fail "--install-adguard must be yes or no"
         return 1
     }
 }
@@ -231,6 +382,14 @@ while (($# > 0)); do
             HEALTH_FAILURE=$2
             shift
             ;;
+        --install-adguard)
+            [[ $# -ge 2 ]] || {
+                fail "--install-adguard requires yes or no"
+                exit 2
+            }
+            INSTALL_ADGUARD=$2
+            shift
+            ;;
         --enable-timer)
             TIMER_MODE=enabled
             TIMER_EXPLICIT=true
@@ -253,12 +412,16 @@ while (($# > 0)); do
     shift
 done
 
-[[ -t 0 ]] || INTERACTIVE=false
+[[ -t 0 || -t 1 || -t 2 ]] || INTERACTIVE=false
+[[ -z "$INSTALL_ADGUARD" || "$INSTALL_ADGUARD" == yes || "$INSTALL_ADGUARD" == no ]] || {
+    fail "--install-adguard must be yes or no"
+    exit 2
+}
 ((EUID == 0)) || {
     fail "Please run the installer as root"
     exit 1
 }
-require_commands curl tar sha256sum flock systemctl dig grep awk sed install mktemp mv
+require_commands curl tar sha256sum flock systemctl dig grep awk sed install mktemp mv find
 
 if [[ "$ACTION" == uninstall ]]; then
     systemctl disable --now adguard-update.timer > /dev/null 2>&1 || true
@@ -268,13 +431,10 @@ if [[ "$ACTION" == uninstall ]]; then
     exit 0
 fi
 
-case "$(uname -m)" in
-    x86_64 | amd64 | aarch64 | arm64) ;;
-    *)
-        fail "Unsupported architecture: $(uname -m). Supported: amd64, arm64"
-        exit 1
-        ;;
-esac
+printf 'AdGuard Home Updater installer %s\n' "$INSTALLER_VERSION"
+architecture > /dev/null
+TMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/adguard-updater-install.XXXXXXXX")
+ensure_adguard_home
 
 existing_version=""
 [[ ! -x "$INSTALL_PATH" ]] || existing_version=$("$INSTALL_PATH" --version 2> /dev/null || true)
@@ -315,20 +475,20 @@ HEALTH_TIMEOUT=${HEALTH_TIMEOUT:-2}
 HEALTH_FAILURE=${HEALTH_FAILURE:-rollback}
 
 if $INTERACTIVE && ! $TIMER_EXPLICIT && [[ -z "$stored_version" ]]; then
-    answer=n
-    read -r -p "Enable scheduled automatic updates? [y/N]: " answer
-    [[ "$answer" =~ ^[Yy]$ ]] && TIMER_MODE=enabled || TIMER_MODE=disabled
+    if prompt_yes_no "Enable scheduled automatic updates? [y/N]: "; then
+        TIMER_MODE=enabled
+    else
+        TIMER_MODE=disabled
+    fi
 fi
 validate_settings
 
-printf 'AdGuard Home Updater installer %s\n' "$INSTALLER_VERSION"
 [[ -z "$existing_version" ]] || printf 'Existing installation: %s\n' "$existing_version"
 if $MIGRATION_NEEDED; then
     printf 'NOTICE: This release introduces configurable persisted settings.\n'
     printf 'Existing timer state was preserved. Review or regenerate your configuration at https://install.foxly.de.\n'
 fi
 
-TMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/adguard-updater-install.XXXXXXXX")
 tag=$(curl --fail --silent --show-error --location --retry 3 "$GITHUB_API/repos/$REPO/releases/latest" | extract_tag)
 [[ -n "$tag" ]] || {
     fail "Could not determine latest updater release"
@@ -372,7 +532,7 @@ Description=Update AdGuard Home and verify DNS health
 Documentation=https://github.com/$REPO
 Wants=network-online.target
 After=network-online.target AdGuardHome.service
-ConditionPathIsExecutable=/opt/AdGuardHome/AdGuardHome
+ConditionPathIsExecutable=$ADGUARD_BINARY
 
 [Service]
 Type=oneshot
