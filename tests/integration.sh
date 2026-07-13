@@ -11,10 +11,10 @@ CALL_LOG="$TEST_ROOT/calls.log"
 SERVICE_STATE="$TEST_ROOT/service.state"
 RELEASE_DIR="$TEST_ROOT/release"
 mkdir -p "$MOCK_BIN" "$INSTALL_DIR"
-: >"$CALL_LOG"
-printf 'active\n' >"$SERVICE_STATE"
+: > "$CALL_LOG"
+printf 'active\n' > "$SERVICE_STATE"
 
-cat >"$INSTALL_DIR/AdGuardHome" <<'EOF'
+cat > "$INSTALL_DIR/AdGuardHome" << 'EOF'
 #!/usr/bin/env bash
 case "${1:-}" in
     --version) printf 'AdGuard Home, version v%s\n' "${MOCK_CURRENT_VERSION:-0.107.76}" ;;
@@ -30,9 +30,9 @@ case "${1:-}" in
 esac
 EOF
 chmod +x "$INSTALL_DIR/AdGuardHome"
-printf 'http:\n  address: 0.0.0.0:3000\n' >"$INSTALL_DIR/AdGuardHome.yaml"
+printf 'http:\n  address: 0.0.0.0:3000\n' > "$INSTALL_DIR/AdGuardHome.yaml"
 
-cat >"$MOCK_BIN/curl" <<'EOF'
+cat > "$MOCK_BIN/curl" << 'EOF'
 #!/usr/bin/env bash
 output=""
 url=""
@@ -57,12 +57,12 @@ printf '{"tag_name":"v%s","published_at":"%s"}\n' \
     "${MOCK_LATEST_VERSION:-0.107.77}" "${MOCK_PUBLISHED_AT:-2026-01-01T00:00:00Z}"
 EOF
 
-cat >"$MOCK_BIN/uname" <<'EOF'
+cat > "$MOCK_BIN/uname" << 'EOF'
 #!/usr/bin/env bash
 printf 'x86_64\n'
 EOF
 
-cat >"$MOCK_BIN/systemctl" <<'EOF'
+cat > "$MOCK_BIN/systemctl" << 'EOF'
 #!/usr/bin/env bash
 printf 'systemctl %s\n' "$*" >> "$MOCK_CALL_LOG"
 if [[ "${1:-}" == is-active ]]; then
@@ -72,13 +72,13 @@ elif [[ "${1:-}" == is-enabled ]]; then
 fi
 EOF
 
-cat >"$MOCK_BIN/dig" <<'EOF'
+cat > "$MOCK_BIN/dig" << 'EOF'
 #!/usr/bin/env bash
 printf 'dig %s\n' "$*" >> "$MOCK_CALL_LOG"
 exit 0
 EOF
 
-cat >"$MOCK_BIN/flock" <<'EOF'
+cat > "$MOCK_BIN/flock" << 'EOF'
 #!/usr/bin/env bash
 exit 0
 EOF
@@ -106,11 +106,11 @@ run_expect() {
     local expected_status=$1 output=$2
     shift 2
     set +e
-    "$@" >"$output" 2>&1
+    "$@" > "$output" 2>&1
     local actual_status=$?
     set -e
     [[ "$actual_status" -eq "$expected_status" ]] ||
-        fail "Expected exit $expected_status, got $actual_status: $(<"$output")"
+        fail "Expected exit $expected_status, got $actual_status: $(< "$output")"
 }
 
 run_expect 10 "$TEST_ROOT/check-update.out" bash "$PROJECT_DIR/adguard-update" --check
@@ -121,7 +121,7 @@ MOCK_CURRENT_VERSION=0.107.77 run_expect 0 "$TEST_ROOT/check-current.out" \
 assert_contains "$TEST_ROOT/check-current.out" "AdGuard Home is up to date"
 
 mkdir -p "$RELEASE_DIR/build/AdGuardHome"
-cat >"$RELEASE_DIR/build/AdGuardHome/AdGuardHome" <<'EOF'
+cat > "$RELEASE_DIR/build/AdGuardHome/AdGuardHome" << 'EOF'
 #!/usr/bin/env bash
 case "${1:-}" in
     --version) printf 'AdGuard Home, version v0.107.77\n' ;;
@@ -139,7 +139,7 @@ chmod +x "$RELEASE_DIR/build/AdGuardHome/AdGuardHome"
 tar -czf "$RELEASE_DIR/AdGuardHome_linux_amd64.tar.gz" -C "$RELEASE_DIR/build" AdGuardHome
 (
     cd "$RELEASE_DIR"
-    sha256sum AdGuardHome_linux_amd64.tar.gz >checksums.txt
+    sha256sum AdGuardHome_linux_amd64.tar.gz > checksums.txt
 )
 
 before_hash=$(sha256sum "$INSTALL_DIR/AdGuardHome" | awk '{print $1}')
@@ -160,7 +160,7 @@ run_expect 0 "$TEST_ROOT/installer-help.out" bash "$PROJECT_DIR/install.sh" --he
 assert_contains "$TEST_ROOT/installer-help.out" "--enable-timer"
 
 if ((EUID == 0)); then
-    : >"$CALL_LOG"
+    : > "$CALL_LOG"
     run_expect 0 "$TEST_ROOT/scheduled-notify.out" env ADGUARD_UPDATE_MODE=notify \
         bash "$PROJECT_DIR/adguard-update" --scheduled
     assert_contains "$TEST_ROOT/scheduled-notify.out" "automatic installation is disabled"
@@ -172,12 +172,12 @@ if ((EUID == 0)); then
         bash "$PROJECT_DIR/adguard-update" --scheduled
     assert_contains "$TEST_ROOT/scheduled-delay.out" "Release delay active"
 
-    : >"$CALL_LOG"
+    : > "$CALL_LOG"
     run_expect 0 "$TEST_ROOT/update.out" bash "$PROJECT_DIR/adguard-update"
     assert_contains "$TEST_ROOT/update.out" "SHA-256 checksum verified"
     assert_contains "$TEST_ROOT/update.out" "Configuration check passed"
     assert_contains "$TEST_ROOT/update.out" "updated successfully to 0.107.77"
-    [[ "$(<"$SERVICE_STATE")" == active ]] || fail "Service was not active after update"
+    [[ "$(< "$SERVICE_STATE")" == active ]] || fail "Service was not active after update"
     find "$INSTALL_DIR/adguard-update-backups" -name AdGuardHome -type f | grep -q . || fail "Binary backup is missing"
     [[ "$("$INSTALL_DIR/AdGuardHome" --version)" == *v0.107.77 ]] || fail "New binary was not installed"
 
@@ -190,7 +190,7 @@ if ((EUID == 0)); then
     cp "$PROJECT_DIR/adguard-update" "$RELEASE_DIR/adguard-update"
     (
         cd "$RELEASE_DIR"
-        sha256sum adguard-update >>checksums.txt
+        sha256sum adguard-update >> checksums.txt
     )
     updater_install_path="$TEST_ROOT/usr/local/sbin/adguard-update"
     service_file="$TEST_ROOT/etc/systemd/system/adguard-update.service"
@@ -199,7 +199,7 @@ if ((EUID == 0)); then
     mkdir -p "$(dirname "$updater_install_path")"
     cp "$PROJECT_DIR/adguard-update" "$updater_install_path"
     chmod +x "$updater_install_path"
-    : >"$CALL_LOG"
+    : > "$CALL_LOG"
     run_expect 0 "$TEST_ROOT/install.out" env \
         UPDATER_INSTALL_PATH="$updater_install_path" \
         UPDATER_SERVICE_FILE="$service_file" \

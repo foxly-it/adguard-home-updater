@@ -33,7 +33,7 @@ trap cleanup EXIT
 fail() { printf 'ERROR: %s\n' "$*" >&2; }
 
 usage() {
-    cat <<'EOF'
+    cat << 'EOF'
 Usage: install.sh [install|uninstall] [OPTIONS]
 
 Options:
@@ -58,7 +58,7 @@ EOF
 
 require_commands() {
     local cmd missing=()
-    for cmd in "$@"; do command -v "$cmd" >/dev/null 2>&1 || missing+=("$cmd"); done
+    for cmd in "$@"; do command -v "$cmd" > /dev/null 2>&1 || missing+=("$cmd"); done
     ((${#missing[@]} == 0)) || {
         fail "Missing required commands: ${missing[*]}"
         return 1
@@ -261,7 +261,7 @@ done
 require_commands curl tar sha256sum flock systemctl dig grep awk sed install mktemp mv
 
 if [[ "$ACTION" == uninstall ]]; then
-    systemctl disable --now adguard-update.timer >/dev/null 2>&1 || true
+    systemctl disable --now adguard-update.timer > /dev/null 2>&1 || true
     rm -f "$SERVICE_FILE" "$TIMER_FILE" "$SETTINGS_FILE" "$INSTALL_PATH"
     systemctl daemon-reload
     printf 'AdGuard Home Updater removed. Backups and logs were preserved.\n'
@@ -277,14 +277,14 @@ case "$(uname -m)" in
 esac
 
 existing_version=""
-[[ ! -x "$INSTALL_PATH" ]] || existing_version=$("$INSTALL_PATH" --version 2>/dev/null || true)
+[[ ! -x "$INSTALL_PATH" ]] || existing_version=$("$INSTALL_PATH" --version 2> /dev/null || true)
 stored_version=$(stored_setting ADGUARD_UPDATER_SETTINGS_VERSION)
 if [[ -n "$existing_version" && "$stored_version" != "$SETTINGS_VERSION" ]]; then
     MIGRATION_NEEDED=true
 fi
 
 legacy_timer_enabled=false
-systemctl is-enabled --quiet adguard-update.timer 2>/dev/null && legacy_timer_enabled=true
+systemctl is-enabled --quiet adguard-update.timer 2> /dev/null && legacy_timer_enabled=true
 
 [[ -n "$TIMER_MODE" ]] || TIMER_MODE=$(stored_setting ADGUARD_UPDATER_TIMER)
 [[ -n "$SCHEDULE" ]] || SCHEDULE=$(stored_setting ADGUARD_UPDATER_SCHEDULE)
@@ -348,7 +348,7 @@ actual=$(sha256sum "$TMP_DIR/adguard-update" | awk '{print $1}')
 mkdir -p "$(dirname "$INSTALL_PATH")" "$(dirname "$SERVICE_FILE")" "$(dirname "$TIMER_FILE")" "$(dirname "$SETTINGS_FILE")"
 install -m 0755 "$TMP_DIR/adguard-update" "$INSTALL_PATH"
 
-cat >"$SETTINGS_FILE" <<EOF
+cat > "$SETTINGS_FILE" << EOF
 # Managed by the AdGuard Home Updater installer.
 ADGUARD_UPDATER_SETTINGS_VERSION=$SETTINGS_VERSION
 ADGUARD_UPDATER_TIMER=$TIMER_MODE
@@ -366,7 +366,7 @@ ADGUARD_HEALTH_FAILURE=$HEALTH_FAILURE
 EOF
 chmod 0644 "$SETTINGS_FILE"
 
-cat >"$SERVICE_FILE" <<EOF
+cat > "$SERVICE_FILE" << EOF
 [Unit]
 Description=Update AdGuard Home and verify DNS health
 Documentation=https://github.com/$REPO
@@ -386,7 +386,7 @@ if [[ "$SCHEDULE" == weekly ]]; then
 else
     ON_CALENDAR="*-*-* $RUN_TIME:00"
 fi
-cat >"$TIMER_FILE" <<EOF
+cat > "$TIMER_FILE" << EOF
 [Unit]
 Description=Scheduled AdGuard Home update
 
@@ -406,7 +406,7 @@ if [[ "$TIMER_MODE" == enabled ]]; then
     systemctl restart adguard-update.timer
     printf 'Updater %s installed; timer enabled (%s, %s, random delay %s).\n' "$tag" "$SCHEDULE" "$RUN_TIME" "$RANDOM_DELAY"
 else
-    systemctl disable --now adguard-update.timer >/dev/null 2>&1 || true
+    systemctl disable --now adguard-update.timer > /dev/null 2>&1 || true
     printf 'Updater %s installed; scheduled updates are disabled.\n' "$tag"
 fi
 printf 'Health-check domain: %s\n' "$HEALTH_DOMAIN"

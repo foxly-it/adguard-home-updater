@@ -55,7 +55,7 @@ emit() {
     line="$(date '+%F %T') [$level] $message"
     printf '%s\n' "$line"
     if $LOG_ENABLED; then
-        printf '%s\n' "$line" >>"$LOGFILE"
+        printf '%s\n' "$line" >> "$LOGFILE"
     fi
 }
 
@@ -65,7 +65,7 @@ warn() { emit WARN "$@"; }
 fail() { emit ERROR "$@" >&2; }
 
 usage() {
-    cat <<'EOF'
+    cat << 'EOF'
 Usage: adguard-update [OPTIONS]
 
 Options:
@@ -86,7 +86,7 @@ require_commands() {
     local command_name
     local missing=()
     for command_name in "$@"; do
-        command -v "$command_name" >/dev/null 2>&1 || missing+=("$command_name")
+        command -v "$command_name" > /dev/null 2>&1 || missing+=("$command_name")
     done
     if ((${#missing[@]} > 0)); then
         fail "Missing required commands: ${missing[*]}"
@@ -163,7 +163,7 @@ normalize_version() {
 }
 
 installed_version() {
-    "$ADGUARD_BINARY" --version 2>/dev/null |
+    "$ADGUARD_BINARY" --version 2> /dev/null |
         grep -oE 'v?[0-9]+\.[0-9]+\.[0-9]+' |
         head -n 1 |
         sed 's/^v//'
@@ -282,7 +282,7 @@ download_and_validate_release() {
         return 1
     fi
     chmod 0755 "$extracted_binary"
-    extracted_version=$("$extracted_binary" --version 2>/dev/null |
+    extracted_version=$("$extracted_binary" --version 2> /dev/null |
         grep -oE 'v?[0-9]+\.[0-9]+\.[0-9]+' | head -n 1 | sed 's/^v//')
     latest=$(normalize_version "$tag")
     if [[ "$extracted_version" != "$latest" ]]; then
@@ -291,7 +291,7 @@ download_and_validate_release() {
     fi
 
     info "Checking existing configuration with AdGuard Home $latest"
-    if ! "$extracted_binary" --check-config -c "$CONFIG_FILE" >"$TMP_DIR/config-check.log" 2>&1; then
+    if ! "$extracted_binary" --check-config -c "$CONFIG_FILE" > "$TMP_DIR/config-check.log" 2>&1; then
         fail "The new release rejected the existing configuration"
         sed -n '1,40p' "$TMP_DIR/config-check.log" >&2
         return 1
@@ -303,7 +303,7 @@ service_health_check() {
     local attempt
     for ((attempt = 1; attempt <= HEALTH_RETRIES; attempt++)); do
         if systemctl is-active --quiet "$SERVICE_NAME" &&
-            dig @127.0.0.1 "$HEALTHCHECK_DOMAIN" "+time=$HEALTH_TIMEOUT" +tries=1 >/dev/null 2>&1; then
+            dig @127.0.0.1 "$HEALTHCHECK_DOMAIN" "+time=$HEALTH_TIMEOUT" +tries=1 > /dev/null 2>&1; then
             success "Service and DNS health checks passed"
             return 0
         fi
@@ -315,13 +315,13 @@ service_health_check() {
 restore_backup() {
     set +e
     fail "Update failed; restoring the previous binary"
-    "$ADGUARD_BINARY" -s stop >/dev/null 2>&1 || systemctl stop "$SERVICE_NAME" >/dev/null 2>&1
+    "$ADGUARD_BINARY" -s stop > /dev/null 2>&1 || systemctl stop "$SERVICE_NAME" > /dev/null 2>&1
     install -m 0755 "$ACTIVE_BACKUP_DIR/AdGuardHome" "$INSTALL_DIR/.adguard-update.rollback"
     mv -f "$INSTALL_DIR/.adguard-update.rollback" "$ADGUARD_BINARY"
     if [[ -f "$ACTIVE_BACKUP_DIR/AdGuardHome.yaml" ]]; then
         install -m 0600 "$ACTIVE_BACKUP_DIR/AdGuardHome.yaml" "$CONFIG_FILE"
     fi
-    "$ADGUARD_BINARY" -s start >/dev/null 2>&1 || systemctl start "$SERVICE_NAME" >/dev/null 2>&1
+    "$ADGUARD_BINARY" -s start > /dev/null 2>&1 || systemctl start "$SERVICE_NAME" > /dev/null 2>&1
     set -e
 }
 
@@ -332,7 +332,7 @@ perform_update() {
     mkdir -p "$ACTIVE_BACKUP_DIR"
     install -m 0755 "$ADGUARD_BINARY" "$ACTIVE_BACKUP_DIR/AdGuardHome"
     install -m 0600 "$CONFIG_FILE" "$ACTIVE_BACKUP_DIR/AdGuardHome.yaml"
-    printf '%s\n' "$(installed_version)" >"$ACTIVE_BACKUP_DIR/version"
+    printf '%s\n' "$(installed_version)" > "$ACTIVE_BACKUP_DIR/version"
 
     info "Stopping $SERVICE_NAME"
     if ! "$ADGUARD_BINARY" -s stop; then
@@ -556,7 +556,7 @@ touch "$LOGFILE"
 chmod 0640 "$LOGFILE"
 LOG_ENABLED=true
 mkdir -p "$(dirname "$LOCKFILE")"
-exec 200>"$LOCKFILE"
+exec 200> "$LOCKFILE"
 flock -n 200 || {
     fail "Another update process is running"
     exit 1
