@@ -18,6 +18,7 @@ if (duplicateIds.length > 0) throw new Error(`Duplicate HTML IDs: ${duplicateIds
 const requiredTokens = [
     "activeWizardSteps",
     "validateWizardStep",
+    "keepWizardInView",
     "nextWizardStep",
     "previousWizardStep",
     'id="wizardProgress"',
@@ -34,6 +35,10 @@ for (const token of requiredTokens) {
 
 for (const step of [1, 2, 3, 4]) {
     if (!html.includes(`data-step="${step}"`)) throw new Error(`Missing wizard step ${step}`);
+}
+
+if (html.includes('scrollIntoView({behavior: "smooth", block: "start"})')) {
+    throw new Error("Wizard navigation still uses the abrupt header anchor scroll");
 }
 
 console.log("Web configurator checks passed.");
