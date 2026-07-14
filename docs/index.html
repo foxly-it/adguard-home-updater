@@ -1256,6 +1256,33 @@
             return false;
         }
 
+        function keepWizardInView() {
+            window.requestAnimationFrame(() => {
+                const header = document.getElementById("wizardHeader");
+                const wizard = header.closest(".cta");
+                const margin = Math.min(32, window.innerHeight * 0.05);
+                const availableHeight = window.innerHeight - (margin * 2);
+                const wizardRect = wizard.getBoundingClientRect();
+                const headerRect = header.getBoundingClientRect();
+                const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+                let scrollOffset;
+
+                if (wizardRect.height <= availableHeight) {
+                    const centeredTop = margin + ((availableHeight - wizardRect.height) / 2);
+                    scrollOffset = wizardRect.top - centeredTop;
+                } else {
+                    scrollOffset = headerRect.top - margin;
+                }
+
+                if (Math.abs(scrollOffset) > 1) {
+                    window.scrollBy({
+                        top: scrollOffset,
+                        behavior: reducedMotion ? "auto" : "smooth"
+                    });
+                }
+            });
+        }
+
         function moveWizard(direction) {
             updateBuilder();
             if (direction > 0 && !validateWizardStep()) return;
@@ -1265,7 +1292,7 @@
             currentWizardStep = steps[nextIndex];
             document.getElementById("wizardValidation").textContent = "";
             renderWizard();
-            document.getElementById("wizardHeader").scrollIntoView({behavior: "smooth", block: "start"});
+            keepWizardInView();
         }
 
         function nextWizardStep() { moveWizard(1); }
