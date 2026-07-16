@@ -31,6 +31,10 @@ const requiredTokens = [
     'class="terminal-cursor"',
     "@keyframes terminal-settle",
     "root@homelab:~#",
+    'class="log-time"',
+    'class="curl-progress"',
+    "Downloading AdGuardHome_linux_arm64.tar.gz from release v0.107.77",
+    "Checking existing configuration with AdGuard Home 0.107.77",
     'id="copyrightYear"',
     "Mark Schenk",
 ];
@@ -40,6 +44,10 @@ for (const token of requiredTokens) {
 
 if (html.includes('src="assets/banner.webp"')) {
     throw new Error("Legacy hero banner is still rendered instead of the terminal preview");
+}
+
+if (html.includes("Progress: [")) {
+    throw new Error("Website still uses the simulated progress format instead of curl's progress bar");
 }
 
 for (const step of [1, 2, 3, 4]) {

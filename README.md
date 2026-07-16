@@ -27,6 +27,8 @@ This is an independent community project and is not affiliated with or maintaine
 
 Required commands are `curl`, `tar`, `sha256sum`, `flock`, `systemctl`, `dig`, and standard GNU utilities. On Debian and Ubuntu, `dig` is provided by the `dnsutils` package.
 
+Interactive update runs use colored `[INFO]`, `[OK]`, `[WARN]`, and `[ERROR]` labels and show curl's real download progress. Non-interactive runs, systemd output, and `/var/log/adguard-update.log` stay free of ANSI control sequences. Set `NO_COLOR=1` to disable colors explicitly.
+
 ### Installation
 
 ```bash
@@ -114,6 +116,8 @@ Dies ist ein unabhängiges Community-Projekt und wird weder von AdGuard betriebe
 | Release-Kanal | Aktuelles stabiles GitHub-Release |
 
 Benötigt werden `curl`, `tar`, `sha256sum`, `flock`, `systemctl`, `dig` und übliche GNU-Werkzeuge. Unter Debian und Ubuntu wird `dig` durch das Paket `dnsutils` bereitgestellt.
+
+Interaktive Updates verwenden farbige `[INFO]`-, `[OK]`-, `[WARN]`- und `[ERROR]`-Markierungen und zeigen den echten Download-Fortschritt von curl. Nicht interaktive Aufrufe, systemd-Ausgaben und `/var/log/adguard-update.log` bleiben frei von ANSI-Steuerzeichen. Mit `NO_COLOR=1` lassen sich Farben ausdrücklich deaktivieren.
 
 ### Installation
 
