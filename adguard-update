@@ -39,6 +39,15 @@ TMP_DIR=""
 LOG_ENABLED=false
 installed_settings_version=""
 ACTIVE_BACKUP_DIR=""
+OUTPUT_COLOR=${ADGUARD_UPDATE_COLOR:-auto}
+OUTPUT_PROGRESS=${ADGUARD_UPDATE_PROGRESS:-auto}
+OUTPUT_BANNER=${ADGUARD_UPDATE_BANNER:-auto}
+COLOR_RESET=$'\033[0m'
+COLOR_INFO=$'\033[34m'
+COLOR_OK=$'\033[32m'
+COLOR_WARN=$'\033[33m'
+COLOR_ERROR=$'\033[31m'
+COLOR_BANNER=$'\033[35m'
 
 cleanup() {
     if [[ -n "$TMP_DIR" && -d "$TMP_DIR" ]]; then
@@ -51,9 +60,20 @@ emit() {
     local level=$1
     shift
     local message=$*
-    local line
-    line="$(date '+%F %T') [$level] $message"
-    printf '%s\n' "$line"
+    local timestamp line color=""
+    timestamp=$(date '+%F %T')
+    line="$timestamp [$level] $message"
+    if color_enabled; then
+        case "$level" in
+            INFO) color=$COLOR_INFO ;;
+            OK) color=$COLOR_OK ;;
+            WARN) color=$COLOR_WARN ;;
+            ERROR) color=$COLOR_ERROR ;;
+        esac
+        printf '%s %s[%s]%s %s\n' "$timestamp" "$color" "$level" "$COLOR_RESET" "$message"
+    else
+        printf '%s\n' "$line"
+    fi
     if $LOG_ENABLED; then
         printf '%s\n' "$line" >> "$LOGFILE"
     fi
@@ -63,6 +83,58 @@ info() { emit INFO "$@"; }
 success() { emit OK "$@"; }
 warn() { emit WARN "$@"; }
 fail() { emit ERROR "$@" >&2; }
+
+output_mode_enabled() {
+    local mode=$1 fd=$2
+    case "$mode" in
+        always) return 0 ;;
+        never) return 1 ;;
+        auto) [[ -t "$fd" && "${TERM:-dumb}" != dumb && $SCHEDULED == false ]] ;;
+        *) return 1 ;;
+    esac
+}
+
+color_enabled() {
+    [[ -z "${NO_COLOR:-}" ]] && output_mode_enabled "$OUTPUT_COLOR" 1
+}
+
+progress_enabled() {
+    output_mode_enabled "$OUTPUT_PROGRESS" 2
+}
+
+banner_enabled() {
+    output_mode_enabled "$OUTPUT_BANNER" 1
+}
+
+show_banner() {
+    banner_enabled || return 0
+    local color="" reset=""
+    if color_enabled; then
+        color=$COLOR_BANNER
+        reset=$COLOR_RESET
+    fi
+    printf '%s%s%s\n' "$color" ' █████╗ ██████╗  ██████╗ ██╗   ██╗ █████╗ ██████╗ ██████╗
+██╔══██╗██╔══██╗██╔════╝ ██║   ██║██╔══██╗██╔══██╗██╔══██╗
+███████║██║  ██║██║  ███╗██║   ██║███████║██████╔╝██║  ██║
+██╔══██║██║  ██║██║   ██║██║   ██║██╔══██║██╔══██╗██║  ██║
+██║  ██║██████╔╝╚██████╔╝╚██████╔╝██║  ██║██║  ██║██████╔╝
+╚═╝  ╚═╝╚═════╝  ╚═════╝  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝
+
+ AdGuard Home Updater
+ Foxly Infrastructure Tools
+' "$reset"
+}
+
+download_file() {
+    local output=$1 url=$2 max_time=$3 show_progress=${4:-no}
+    local curl_output=(--silent)
+    if [[ "$show_progress" == yes ]] && progress_enabled; then
+        curl_output=(--progress-bar)
+    fi
+    curl --fail --show-error --location --retry 3 --retry-all-errors \
+        --connect-timeout 10 --max-time "$max_time" "${curl_output[@]}" \
+        --output "$output" "$url"
+}
 
 usage() {
     cat << 'EOF'
@@ -254,10 +326,8 @@ download_and_validate_release() {
     local expected actual extracted_binary extracted_version latest
 
     info "Downloading $archive_name from release $tag"
-    curl --fail --silent --show-error --location --retry 3 --retry-all-errors \
-        --connect-timeout 10 --max-time 300 --output "$archive" "$release_url/$archive_name"
-    curl --fail --silent --show-error --location --retry 3 --retry-all-errors \
-        --connect-timeout 10 --max-time 60 --output "$checksums" "$release_url/checksums.txt"
+    download_file "$archive" "$release_url/$archive_name" 300 yes
+    download_file "$checksums" "$release_url/checksums.txt" 60
 
     expected=$(checksum_for "$checksums" "$archive_name")
     if [[ ! "$expected" =~ ^[[:xdigit:]]{64}$ ]]; then
@@ -436,8 +506,8 @@ self_update() {
         return 0
     fi
     base="https://github.com/$UPDATER_REPO/releases/download/$tag"
-    curl --fail --silent --show-error --location --retry 3 --output "$TMP_DIR/adguard-update" "$base/adguard-update"
-    curl --fail --silent --show-error --location --retry 3 --output "$TMP_DIR/checksums.txt" "$base/checksums.txt"
+    download_file "$TMP_DIR/adguard-update" "$base/adguard-update" 300 yes
+    download_file "$TMP_DIR/checksums.txt" "$base/checksums.txt" 60
     expected=$(checksum_for "$TMP_DIR/checksums.txt" adguard-update)
     actual=$(sha256sum "$TMP_DIR/adguard-update" | awk '{print $1}')
     [[ "$expected" =~ ^[[:xdigit:]]{64}$ && "$expected" == "$actual" ]] ||
@@ -506,6 +576,7 @@ fi
 
 require_commands curl grep sed awk tar sha256sum mktemp install mv systemctl flock dig find sort date
 require_installation
+show_banner
 current=$(installed_version)
 latest_tag=$(latest_adguard_tag)
 latest=$(normalize_version "$latest_tag")

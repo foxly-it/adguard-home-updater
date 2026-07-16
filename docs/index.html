@@ -699,6 +699,8 @@
         .log-ok { color: var(--terminal-ok); }
         .log-warn { color: var(--terminal-warn); }
         .log-error { color: var(--terminal-error); }
+        .log-time { color: #7f8b98; }
+        .curl-progress { color: #cbd5df; }
         .banner { color: #9ca3af; }
 
         .footer {
@@ -893,8 +895,8 @@
 
         .hero {
             display: grid;
-            grid-template-columns: minmax(320px, 0.72fr) minmax(0, 1.28fr);
-            gap: 48px;
+            grid-template-columns: minmax(320px, 0.62fr) minmax(0, 1.38fr);
+            gap: 38px;
             align-items: center;
             padding: 72px 0 86px;
         }
@@ -998,7 +1000,7 @@
             overflow: hidden;
             padding: 22px 24px 26px;
             color: var(--terminal-text);
-            font: 12.5px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font: 11.5px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
             white-space: pre-wrap;
         }
 
@@ -1975,12 +1977,9 @@
  AdGuard Home Updater
  Foxly Infrastructure Tools
 </span>`,
-`<span class="log-info">[INFO]</span> Installed version: 0.107.76`,
-`<span class="log-info">[INFO]</span> Latest version: 0.107.77`,
-`<span class="log-info">[INFO]</span> Downloading AdGuardHome_linux_arm64.tar.gz`,
-`<span class="log-ok">[OK]</span> SHA-256 checksum verified`,
-`<span class="log-info">[INFO]</span> Checking existing configuration`,
-`<span class="log-ok">[OK]</span> Configuration check passed`
+`<span class="log-time">2026-07-16 11:08:21</span> <span class="log-info">[INFO]</span> Installed version: 0.107.76`,
+`<span class="log-time">2026-07-16 11:08:21</span> <span class="log-info">[INFO]</span> Latest version: 0.107.77`,
+`<span class="log-time">2026-07-16 11:08:22</span> <span class="log-info">[INFO]</span> Downloading AdGuardHome_linux_arm64.tar.gz from release v0.107.77`
         ];
 
         let cliIndex = 0;
@@ -1995,20 +1994,21 @@
                 return;
             }
 
-            // 🔥 echte Progressbar Animation
             if (cliIndex === sequence.length) {
 
                 let progress = 0;
 
                 function animate() {
-                    let bar = "█".repeat(progress) + "░".repeat(20 - progress);
+                    let barWidth = window.innerWidth <= 700 ? 44 : 72;
+                    let filled = Math.round((progress / 20) * barWidth);
+                    let bar = "#".repeat(filled) + " ".repeat(barWidth - filled);
                     let percent = progress * 5;
 
-                    let line = `Progress: [${bar}] ${percent}%`;
+                    let line = `<span class="curl-progress">${bar} ${percent.toFixed(1)}%</span>`;
 
                     let lines = terminal.innerHTML.split("\n");
 
-                    if (lines[lines.length - 2]?.startsWith("Progress")) {
+                    if (lines[lines.length - 2]?.includes('class="curl-progress"')) {
                         lines[lines.length - 2] = line;
                         terminal.innerHTML = lines.join("\n");
                     } else {
@@ -2029,10 +2029,13 @@
             }
 
             const end = [
-`<span class="log-info">[INFO]</span> Stopping AdGuard Home`,
-`<span class="log-info">[INFO]</span> Starting AdGuard Home`,
-`<span class="log-ok">[OK]</span> Service and DNS health checks passed`,
-`<span class="log-ok">[OK]</span> AdGuard Home updated successfully`,
+`<span class="log-time">2026-07-16 11:08:25</span> <span class="log-ok">[OK]</span> SHA-256 checksum verified`,
+`<span class="log-time">2026-07-16 11:08:25</span> <span class="log-info">[INFO]</span> Checking existing configuration with AdGuard Home 0.107.77`,
+`<span class="log-time">2026-07-16 11:08:26</span> <span class="log-ok">[OK]</span> Configuration check passed`,
+`<span class="log-time">2026-07-16 11:08:26</span> <span class="log-info">[INFO]</span> Stopping AdGuardHome`,
+`<span class="log-time">2026-07-16 11:08:27</span> <span class="log-info">[INFO]</span> Starting AdGuardHome`,
+`<span class="log-time">2026-07-16 11:08:29</span> <span class="log-ok">[OK]</span> Service and DNS health checks passed`,
+`<span class="log-time">2026-07-16 11:08:29</span> <span class="log-ok">[OK]</span> AdGuard Home updated successfully to 0.107.77`,
 `<span class="terminal-command"><span class="terminal-prompt">root@homelab:~#</span><span class="terminal-cursor" aria-hidden="true"></span></span>`
             ];
 

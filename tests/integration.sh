@@ -36,11 +36,16 @@ cat > "$MOCK_BIN/curl" << 'EOF'
 #!/usr/bin/env bash
 output=""
 url=""
+progress=false
 while (($# > 0)); do
     case "$1" in
         --output | -o)
             output=$2
             shift 2
+            ;;
+        --progress-bar)
+            progress=true
+            shift
             ;;
         http*)
             url=$1
@@ -51,6 +56,9 @@ while (($# > 0)); do
 done
 if [[ -n "$output" ]]; then
     cp "$MOCK_RELEASE_DIR/${url##*/}" "$output"
+    if $progress; then
+        printf '######################################################################## 100.0%%\n' >&2
+    fi
     exit 0
 fi
 printf '{"tag_name":"v%s","published_at":"%s"}\n' \
@@ -102,6 +110,12 @@ assert_contains() {
     grep -Fq -- "$expected" "$file" || fail "Expected '$expected' in $file"
 }
 
+assert_not_contains() {
+    local file=$1 unexpected=$2
+    grep -Fq -- "$unexpected" "$file" && fail "Did not expect '$unexpected' in $file"
+    return 0
+}
+
 run_expect() {
     local expected_status=$1 output=$2
     shift 2
@@ -115,6 +129,14 @@ run_expect() {
 
 run_expect 10 "$TEST_ROOT/check-update.out" bash "$PROJECT_DIR/adguard-update" --check
 assert_contains "$TEST_ROOT/check-update.out" "Update available: 0.107.76 -> 0.107.77"
+
+run_expect 10 "$TEST_ROOT/check-color.out" env -u NO_COLOR ADGUARD_UPDATE_COLOR=always \
+    bash "$PROJECT_DIR/adguard-update" --check
+assert_contains "$TEST_ROOT/check-color.out" $'\033[34m[INFO]\033[0m'
+
+run_expect 10 "$TEST_ROOT/check-no-color.out" env NO_COLOR=1 ADGUARD_UPDATE_COLOR=always \
+    bash "$PROJECT_DIR/adguard-update" --check
+assert_not_contains "$TEST_ROOT/check-no-color.out" $'\033['
 
 MOCK_CURRENT_VERSION=0.107.77 run_expect 0 "$TEST_ROOT/check-current.out" \
     bash "$PROJECT_DIR/adguard-update" --check
@@ -143,12 +165,19 @@ tar -czf "$RELEASE_DIR/AdGuardHome_linux_amd64.tar.gz" -C "$RELEASE_DIR/build" A
 )
 
 before_hash=$(sha256sum "$INSTALL_DIR/AdGuardHome" | awk '{print $1}')
-run_expect 0 "$TEST_ROOT/dry-run.out" bash "$PROJECT_DIR/adguard-update" --dry-run
+run_expect 0 "$TEST_ROOT/dry-run.out" env \
+    ADGUARD_UPDATE_PROGRESS=always ADGUARD_UPDATE_BANNER=always \
+    bash "$PROJECT_DIR/adguard-update" --dry-run
 after_hash=$(sha256sum "$INSTALL_DIR/AdGuardHome" | awk '{print $1}')
 [[ "$before_hash" == "$after_hash" ]] || fail "Dry-run changed the AdGuard Home binary"
 [[ ! -s "$CALL_LOG" ]] || fail "Dry-run called a service or DNS command"
 [[ ! -e "$TEST_ROOT/adguard-update.log" ]] || fail "Dry-run created a log file"
 assert_contains "$TEST_ROOT/dry-run.out" "no files or services were changed"
+assert_contains "$TEST_ROOT/dry-run.out" "AdGuard Home Updater"
+assert_contains "$TEST_ROOT/dry-run.out" "######################################################################## 100.0%"
+
+run_expect 0 "$TEST_ROOT/dry-run-noninteractive.out" bash "$PROJECT_DIR/adguard-update" --dry-run
+assert_not_contains "$TEST_ROOT/dry-run-noninteractive.out" "######################################################################## 100.0%"
 
 run_expect 2 "$TEST_ROOT/unknown.out" bash "$PROJECT_DIR/adguard-update" --not-a-real-option
 assert_contains "$TEST_ROOT/unknown.out" "Unknown option"
