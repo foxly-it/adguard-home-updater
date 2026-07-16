@@ -26,11 +26,20 @@ const requiredTokens = [
     'id="presetTools"',
     'id="advancedToggle"',
     'class="github-link"',
+    'class="terminal-shell"',
+    'class="terminal-output" id="terminal"',
+    'class="terminal-cursor"',
+    "@keyframes terminal-settle",
+    "root@homelab:~#",
     'id="copyrightYear"',
     "Mark Schenk",
 ];
 for (const token of requiredTokens) {
     if (!html.includes(token)) throw new Error(`Missing configurator token: ${token}`);
+}
+
+if (html.includes('src="assets/banner.webp"')) {
+    throw new Error("Legacy hero banner is still rendered instead of the terminal preview");
 }
 
 for (const step of [1, 2, 3, 4]) {

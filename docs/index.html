@@ -804,42 +804,392 @@
                 flex-direction: column;
             }
         }
+
+        /* MOTD-inspired landing page */
+        body.dark {
+            --bg: #0d1218;
+            --bg-soft: #1b2631;
+            --card: #151d25;
+            --card-soft: #111820;
+            --border: #2b3945;
+            --text: #edf2f7;
+            --muted: #9ba9b7;
+            --accent: #72c483;
+            --accent-strong: #72c483;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body.dark {
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at 75% 0, rgba(94, 183, 232, 0.12), transparent 35%),
+                radial-gradient(circle at 15% 15%, rgba(114, 196, 131, 0.12), transparent 30%),
+                var(--bg);
+            font: 16px/1.6 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        .container {
+            width: min(1200px, calc(100% - 40px));
+            max-width: none;
+            padding: 0 0 40px;
+        }
+
+        .topbar {
+            min-height: 74px;
+            margin: 0;
+        }
+
+        .brand {
+            color: var(--text);
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            text-decoration: none;
+        }
+
+        .brand span,
+        .hero h1 em {
+            color: var(--accent);
+        }
+
+        .topbar-actions,
+        .site-nav,
+        .language-switch {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .site-nav a {
+            margin-right: 10px;
+            color: var(--muted);
+            text-decoration: none;
+        }
+
+        .site-nav a:hover {
+            color: var(--text);
+        }
+
+        .language-switch {
+            padding: 4px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--card);
+        }
+
+        .language-switch .toolbar-btn {
+            border: 0;
+            background: transparent;
+            padding: 6px 10px;
+            font-weight: 800;
+        }
+
+        .language-switch .toolbar-btn.active {
+            background: var(--accent);
+            color: #07110a;
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: minmax(320px, 0.72fr) minmax(0, 1.28fr);
+            gap: 48px;
+            align-items: center;
+            padding: 72px 0 86px;
+        }
+
+        .eyebrow {
+            color: var(--accent);
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .hero h1 {
+            margin: 0.25em 0 0.3em;
+            font-size: clamp(3rem, 6.4vw, 5.4rem);
+            line-height: 0.98;
+            letter-spacing: -0.055em;
+        }
+
+        .hero h1 em {
+            font-style: normal;
+        }
+
+        .hero-lead {
+            max-width: 620px;
+            margin: 0;
+            color: var(--muted);
+            font-size: 1.16rem;
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 28px;
+        }
+
+        .hero-button {
+            display: inline-block;
+            padding: 12px 18px;
+            border: 1px solid var(--accent);
+            border-radius: 10px;
+            background: var(--accent);
+            color: #07110a;
+            font-weight: 800;
+            text-decoration: none;
+        }
+
+        .hero-button.secondary {
+            border-color: var(--border);
+            background: transparent;
+            color: var(--text);
+        }
+
+        .hero .badges {
+            justify-content: flex-start;
+            margin: 24px 0 0;
+        }
+
+        .terminal-shell {
+            overflow: hidden;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: #090d11;
+            box-shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
+            transform: rotate(1deg);
+        }
+
+        .terminal-head {
+            display: flex;
+            align-items: center;
+            height: 46px;
+            padding: 0 17px;
+            background: #141b22;
+        }
+
+        .terminal-dots {
+            display: flex;
+            gap: 8px;
+        }
+
+        .terminal-dot {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            background: #f07178;
+        }
+
+        .terminal-dot:nth-child(2) { background: #f6c85f; }
+        .terminal-dot:nth-child(3) { background: var(--accent); }
+
+        .terminal-title {
+            margin: 0 auto;
+            padding-right: 49px;
+            color: var(--muted);
+            font: 12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        }
+
+        .terminal-output {
+            height: 465px;
+            overflow: hidden;
+            padding: 22px 24px 26px;
+            color: var(--terminal-text);
+            font: 12.5px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            white-space: pre-wrap;
+        }
+
+        .terminal-output .banner {
+            display: block;
+            overflow: hidden;
+            color: #a98bea;
+            font-size: clamp(7px, 0.78vw, 10px);
+            line-height: 1.25;
+            white-space: pre;
+        }
+
+        .terminal-command {
+            color: #cbd5df;
+        }
+
+        .terminal-prompt {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .terminal-cursor {
+            display: inline-block;
+            width: 0.62em;
+            height: 1.05em;
+            margin-left: 0.25em;
+            background: #cbd5df;
+            vertical-align: -0.18em;
+            animation: cursor-blink 1s steps(1, end) infinite;
+        }
+
+        @keyframes cursor-blink {
+            0%, 48% { opacity: 1; }
+            49%, 100% { opacity: 0; }
+        }
+
+        @keyframes terminal-settle {
+            from { transform: perspective(900px) rotateZ(1deg) rotateY(-8deg) translateX(16px); }
+            to { transform: perspective(900px) rotateZ(1deg) rotateY(0) translateX(0); }
+        }
+
+        .stats {
+            margin-bottom: 72px;
+        }
+
+        .stat-card,
+        .card,
+        .footer {
+            background: linear-gradient(145deg, var(--card), var(--card-soft));
+        }
+
+        .cta {
+            margin-bottom: 72px;
+            padding: 38px;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+        }
+
+        .cta > h2 {
+            font-size: clamp(2rem, 4vw, 3.1rem);
+            letter-spacing: -0.035em;
+        }
+
+        .grid-2 {
+            gap: 18px;
+        }
+
+        .grid-2 .card {
+            padding: 27px;
+        }
+
+        @media (min-width: 1021px) and (hover: hover) and (pointer: fine) {
+            .terminal-shell {
+                transform: perspective(900px) rotateZ(1deg) rotateY(0) translateX(0);
+                transform-style: preserve-3d;
+                transition: transform 280ms ease-in-out, box-shadow 280ms ease-in-out;
+                animation: terminal-settle 700ms ease-out;
+                will-change: transform;
+            }
+
+            .terminal-shell:hover {
+                transform: perspective(900px) rotateZ(1deg) rotateY(-8deg) translateX(16px);
+                box-shadow: 0 30px 85px rgba(0, 0, 0, 0.48);
+            }
+        }
+
+        @media (max-width: 1020px) {
+            .hero {
+                grid-template-columns: 1fr;
+                padding-top: 42px;
+            }
+
+            .terminal-shell {
+                transform: none;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .container {
+                width: min(100% - 24px, 1200px);
+            }
+
+            .topbar {
+                align-items: flex-start;
+                padding: 14px 0;
+            }
+
+            .topbar-actions {
+                align-items: flex-end;
+                flex-direction: column;
+            }
+
+            .site-nav a:not(:last-child) {
+                display: none;
+            }
+
+            .hero {
+                gap: 38px;
+                padding-bottom: 60px;
+            }
+
+            .terminal-output {
+                height: 410px;
+                padding: 18px 14px 22px;
+                font-size: 10px;
+            }
+
+            .stats,
+            .cta {
+                margin-bottom: 54px;
+            }
+
+            .cta {
+                padding: 22px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            .terminal-shell { animation: none; transition: none; }
+            .terminal-shell:hover { transform: none; }
+            .terminal-cursor { animation: none; }
+        }
     </style>
 </head>
 <body class="dark">
     <div class="container">
 
-        <div class="topbar">
-            <a class="github-link" href="https://github.com/foxly-it/adguard-home-updater" target="_blank" rel="noopener noreferrer"
-               aria-label="Open the AdGuard Home Updater repository on GitHub">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M12 .7a11.5 11.5 0 0 0-3.64 22.41c.58.11.79-.25.79-.56v-2.02c-3.22.7-3.9-1.37-3.9-1.37-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.71.08-.71 1.16.08 1.77 1.2 1.77 1.2 1.04 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.73-1.55-2.57-.29-5.28-1.29-5.28-5.73 0-1.27.45-2.3 1.2-3.11-.12-.29-.52-1.47.11-3.07 0 0 .98-.31 3.16 1.19a10.93 10.93 0 0 1 5.76 0c2.19-1.5 3.16-1.19 3.16-1.19.63 1.6.23 2.78.11 3.07.75.81 1.2 1.84 1.2 3.11 0 4.45-2.71 5.43-5.29 5.72.42.36.79 1.06.79 2.14v3.06c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .7Z"/>
-                </svg>
-                <span>GitHub</span>
-            </a>
-            <div class="toolbar-group">
-                <button class="toolbar-btn active" id="btn-en" onclick="setLang('en')">EN</button>
-                <button class="toolbar-btn" id="btn-de" onclick="setLang('de')">DE</button>
+        <header class="topbar">
+            <a class="brand" href="#top">🦊 <span>Foxly</span> AdGuard Updater</a>
+            <div class="topbar-actions">
+                <nav class="site-nav" aria-label="Main navigation">
+                    <a href="#assistant" data-en="Assistant" data-de="Assistent">Assistant</a>
+                    <a href="#features" data-en="Features" data-de="Funktionen">Features</a>
+                    <a class="github-link" href="https://github.com/foxly-it/adguard-home-updater" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+                </nav>
+                <div class="language-switch" aria-label="Language">
+                    <button class="toolbar-btn active" id="btn-en" type="button" onclick="setLang('en')">EN</button>
+                    <button class="toolbar-btn" id="btn-de" type="button" onclick="setLang('de')">DE</button>
+                </div>
             </div>
+        </header>
 
-        </div>
-
-        <div class="header">
-            <img src="assets/banner.webp" width="1200" height="600" fetchpriority="high" decoding="async" alt="AdGuard Home Updater secure network update illustration">
-            <h1 data-en="AdGuard Home Updater" data-de="AdGuard Home Updater">AdGuard Home Updater</h1>
-            <p
-                data-en="Safe and automated updates for bare-metal installations."
-                data-de="Sichere und automatisierte Updates für Bare-Metal Installationen."
-            >
-                Safe and automated updates for bare-metal installations.
-            </p>
-        </div>
-
-        <div class="badges">
-            <span class="badge">✔ Secure</span>
-            <span class="badge">✔ Open Source</span>
-            <span class="badge">✔ ARM64 Ready</span>
-        </div>
+        <main id="top">
+        <section class="hero" aria-labelledby="hero-title">
+            <div class="hero-copy">
+                <div class="eyebrow" data-en="Verified · Automated · Reversible" data-de="Geprüft · Automatisiert · Reversibel">Verified · Automated · Reversible</div>
+                <h1 id="hero-title" data-en="Your DNS.<br><em>Safely updated.</em>" data-de="Dein DNS.<br><em>Sicher aktuell.</em>">Your DNS.<br><em>Safely updated.</em></h1>
+                <p class="hero-lead"
+                   data-en="Reliable AdGuard Home updates for Linux and ARM — with checksum verification, backups, health checks and automatic rollback."
+                   data-de="Zuverlässige AdGuard-Home-Updates für Linux und ARM – mit Prüfsummen, Backups, Healthchecks und automatischem Rollback.">Reliable AdGuard Home updates for Linux and ARM — with checksum verification, backups, health checks and automatic rollback.</p>
+                <div class="hero-actions">
+                    <a class="hero-button" href="#assistant" data-en="Start assistant" data-de="Assistent starten">Start assistant</a>
+                    <a class="hero-button secondary" href="https://github.com/foxly-it/adguard-home-updater" target="_blank" rel="noopener noreferrer" data-en="View source" data-de="Quellcode ansehen">View source</a>
+                </div>
+                <div class="badges" aria-label="Project highlights">
+                    <span class="badge" data-en="✓ Secure" data-de="✓ Sicher">✓ Secure</span>
+                    <span class="badge">✓ Open Source</span>
+                    <span class="badge">✓ AMD64 &amp; ARM64</span>
+                </div>
+            </div>
+            <div class="terminal-shell" aria-label="Live AdGuard Home Updater terminal preview">
+                <div class="terminal-head">
+                    <div class="terminal-dots" aria-hidden="true">
+                        <span class="terminal-dot"></span><span class="terminal-dot"></span><span class="terminal-dot"></span>
+                    </div>
+                    <span class="terminal-title">root@homelab — adguard-update</span>
+                </div>
+                <div class="terminal-output" id="terminal" role="log" aria-live="off"></div>
+            </div>
+        </section>
 
         <div class="stats">
             <div class="stat-card">
@@ -861,7 +1211,7 @@
             </div>
         </div>
 
-        <div class="card cta">
+        <div class="card cta" id="assistant">
             <h2 data-en="Install" data-de="Installation">Install</h2>
 
             <p data-en="Answer one short step at a time. At the end, you can review every setting before copying the installation command."
@@ -1070,7 +1420,7 @@
             </div>
         </div>
 
-        <div class="grid-2">
+        <div class="grid-2" id="features">
             <div class="card">
                 <h2 data-en="Why this tool?" data-de="Warum dieses Tool?">Why this tool?</h2>
                 <p
@@ -1120,11 +1470,6 @@
             </div>
         </div>
 
-        <div class="card">
-            <h2 data-en="Live CLI Preview" data-de="Live CLI Vorschau">Live CLI Preview</h2>
-            <div class="terminal" id="terminal"></div>
-        </div>
-
         <footer class="footer">
             <div class="footer-main">
                 <div class="footer-brand">
@@ -1146,6 +1491,7 @@
                       data-de="Unabhängiges Community-Projekt – nicht mit AdGuard verbunden.">Independent community project — not affiliated with AdGuard.</span>
             </div>
         </footer>
+        </main>
 
     </div>
 
@@ -1617,6 +1963,7 @@
         const terminal = document.getElementById("terminal");
 
         const sequence = [
+`<span class="terminal-command"><span class="terminal-prompt">root@homelab:~#</span> sudo adguard-update</span>`,
 `<span class="banner">
  █████╗ ██████╗  ██████╗ ██╗   ██╗ █████╗ ██████╗ ██████╗
 ██╔══██╗██╔══██╗██╔════╝ ██║   ██║██╔══██╗██╔══██╗██╔══██╗
@@ -1685,7 +2032,8 @@
 `<span class="log-info">[INFO]</span> Stopping AdGuard Home`,
 `<span class="log-info">[INFO]</span> Starting AdGuard Home`,
 `<span class="log-ok">[OK]</span> Service and DNS health checks passed`,
-`<span class="log-ok">[OK]</span> AdGuard Home updated successfully`
+`<span class="log-ok">[OK]</span> AdGuard Home updated successfully`,
+`<span class="terminal-command"><span class="terminal-prompt">root@homelab:~#</span><span class="terminal-cursor" aria-hidden="true"></span></span>`
             ];
 
             if (cliIndex < sequence.length + 1 + end.length) {
