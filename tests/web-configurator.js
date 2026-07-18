@@ -25,7 +25,9 @@ const requiredTokens = [
     'id="wizardReview"',
     'id="presetTools"',
     'id="advancedToggle"',
-    'class="github-link"',
+    'href="https://github.com/foxly-it/adguard-home-updater"',
+    'class="lang-button"',
+    'data-en="Install" data-de="Installation"',
     'href="#project"',
     'class="terminal-shell"',
     'class="terminal-output" id="terminal"',
@@ -66,6 +68,18 @@ for (const step of [1, 2, 3, 4]) {
 
 if (html.includes('scrollIntoView({behavior: "smooth", block: "start"})')) {
     throw new Error("Wizard navigation still uses the abrupt header anchor scroll");
+}
+
+const siteNav = html.match(/<nav class="site-nav"[\s\S]*?<\/nav>/)?.[0] || "";
+if ((siteNav.match(/<a /g) || []).length !== 5 ||
+    !siteNav.includes('href="#features"') || !siteNav.includes('href="#project"') ||
+    !siteNav.includes('href="#assistant"') || siteNav.includes('class="github-link"')) {
+    throw new Error("Top navigation does not match the Foxly MOTD structure");
+}
+
+for (const token of ["width: min(1400px, calc(100% - 40px))", "@media (max-width: 820px)",
+    "@media (max-width: 560px)", ".lang-button.active"]) {
+    if (!html.includes(token)) throw new Error(`Missing shared topbar rule: ${token}`);
 }
 
 if ((html.match(/class="activity-card"/g) || []).length !== 3) {
