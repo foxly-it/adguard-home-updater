@@ -1182,6 +1182,49 @@
             font-size: 0.92rem;
         }
 
+        .release-main-link {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .release-main-link:hover {
+            color: var(--accent);
+        }
+
+        .release-entries {
+            display: grid;
+            gap: 10px;
+            margin: 0 0 20px;
+            padding: 0;
+            list-style: none;
+        }
+
+        .release-entry {
+            padding-top: 10px;
+            border-top: 1px solid var(--border);
+        }
+
+        .release-entry-title {
+            display: block;
+            margin-bottom: 3px;
+            font-size: 0.88rem;
+            line-height: 1.35;
+        }
+
+        .release-entry-links {
+            color: var(--muted);
+            font-size: 0.78rem;
+        }
+
+        .release-entry-links a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .release-entry-links a:hover {
+            text-decoration: underline;
+        }
+
         .activity-meta {
             margin-top: auto;
             padding-top: 14px;
@@ -1443,12 +1486,13 @@
                 <p class="activity-description" id="activityPrDescription" data-en="Most recently merged repository change." data-de="Zuletzt gemergte Änderung im Repository.">Most recently merged repository change.</p>
                 <div class="activity-meta"><span id="activityPrAuthor">GitHub</span><time id="activityPrDate">–</time></div>
             </a>
-            <a class="activity-card" id="activityReleaseLink" href="https://github.com/foxly-it/adguard-home-updater/releases/latest" target="_blank" rel="noopener noreferrer">
-                <div class="activity-top"><span class="activity-kind" data-en="Release log" data-de="Release-Log">Release log</span><span class="activity-arrow" aria-hidden="true">↗</span></div>
-                <h3 class="activity-title" id="activityReleaseTitle">v2.0.1</h3>
+            <article class="activity-card">
+                <div class="activity-top"><span class="activity-kind" data-en="Release log" data-de="Release-Log">Release log</span><a class="activity-arrow release-main-link" id="activityReleaseLink" href="https://github.com/foxly-it/adguard-home-updater/releases/latest" target="_blank" rel="noopener noreferrer" aria-label="Open release log">↗</a></div>
+                <h3 class="activity-title"><a class="release-main-link" id="activityReleaseTitle" href="https://github.com/foxly-it/adguard-home-updater/releases/latest" target="_blank" rel="noopener noreferrer">v2.0.1</a></h3>
                 <p class="activity-description" id="activityReleaseDescription" data-en="Versioned downloads with SHA-256 verification." data-de="Versionierte Downloads mit SHA-256-Prüfung.">Versioned downloads with SHA-256 verification.</p>
+                <ul class="release-entries" id="activityReleaseEntries" hidden></ul>
                 <div class="activity-meta"><span id="activityReleaseAssets" data-en="Release assets" data-de="Release-Artefakte">Release assets</span><time id="activityReleaseDate">–</time></div>
-            </a>
+            </article>
         </div>
         <div class="live-line" id="projectLiveStatus" data-state="loading"><span class="live-dot" aria-hidden="true"></span><span id="projectLiveLabel" data-en="Loading live GitHub data …" data-de="GitHub-Livedaten werden geladen …">Loading live GitHub data …</span></div>
         </section>
@@ -2167,6 +2211,13 @@
                 .find((line) => line && !line.startsWith("#"))?.replace(/^[-*]\s*/, "") || "";
         }
 
+        function parseReleaseEntries(value) {
+            return String(value || "").split("\n").map((line) => {
+                const match = line.trim().match(/^\*\s+(.+?)\s+by\s+@([A-Za-z0-9-]+)\s+in\s+(https:\/\/github\.com\/[^/]+\/[^/]+\/pull\/(\d+))\s*$/);
+                return match ? {title: match[1], author: match[2], authorUrl: `https://github.com/${match[2]}`, pr: match[4], prUrl: match[3]} : null;
+            }).filter(Boolean).slice(0, 5);
+        }
+
         function summarizeProjectActivity(releases, commits, pulls) {
             const published = releases.filter((release) => !release.draft && !release.prerelease);
             const latestRelease = published[0] || null;
@@ -2196,6 +2247,7 @@
                 release: latestRelease ? {
                     title: latestRelease.name || latestRelease.tag_name,
                     description: firstMeaningfulLine(latestRelease.body),
+                    entries: parseReleaseEntries(latestRelease.body),
                     date: latestRelease.published_at || "",
                     url: latestRelease.html_url || "",
                     assets: (latestRelease.assets || []).length
@@ -2211,6 +2263,38 @@
         function setProjectLink(id, value) {
             const element = document.getElementById(id);
             if (element && value) element.href = value;
+        }
+
+        function renderReleaseEntries(entries) {
+            const list = document.getElementById("activityReleaseEntries");
+            const description = document.getElementById("activityReleaseDescription");
+            if (!list || !description) return;
+            list.replaceChildren();
+            list.hidden = entries.length === 0;
+            description.hidden = entries.length > 0;
+            entries.forEach((entry) => {
+                const item = document.createElement("li");
+                item.className = "release-entry";
+                const title = document.createElement("span");
+                title.className = "release-entry-title";
+                title.textContent = entry.title;
+                const links = document.createElement("span");
+                links.className = "release-entry-links";
+                links.append(document.createTextNode(window.currentLang === "de" ? "von " : "by "));
+                const author = document.createElement("a");
+                author.href = entry.authorUrl;
+                author.target = "_blank";
+                author.rel = "noopener noreferrer";
+                author.textContent = `@${entry.author}`;
+                const pull = document.createElement("a");
+                pull.href = entry.prUrl;
+                pull.target = "_blank";
+                pull.rel = "noopener noreferrer";
+                pull.textContent = `#${entry.pr}`;
+                links.append(author, document.createTextNode(window.currentLang === "de" ? " in " : " in "), pull);
+                item.append(title, links);
+                list.append(item);
+            });
         }
 
         function formatProjectDate(value) {
@@ -2252,9 +2336,11 @@
             if (projectActivity.release) {
                 setProjectText("activityReleaseTitle", projectActivity.release.title);
                 setProjectText("activityReleaseDescription", projectActivity.release.description || (lang === "de" ? "Versionierte Downloads mit SHA-256-Prüfung." : "Versioned downloads with SHA-256 verification."));
+                renderReleaseEntries(projectActivity.release.entries || []);
                 setProjectText("activityReleaseAssets", `${projectActivity.release.assets} ${lang === "de" ? "Artefakte" : "assets"}`);
                 setProjectText("activityReleaseDate", formatProjectDate(projectActivity.release.date));
                 setProjectLink("activityReleaseLink", projectActivity.release.url);
+                setProjectLink("activityReleaseTitle", projectActivity.release.url);
             }
         }
 
