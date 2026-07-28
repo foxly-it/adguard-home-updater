@@ -6,6 +6,10 @@ const vm = require("vm");
 
 const projectDir = path.resolve(__dirname, "..");
 const html = fs.readFileSync(path.join(projectDir, "docs", "index.html"), "utf8");
+const docsPage = fs.readFileSync(path.join(projectDir, "docs", "docs.html"), "utf8");
+const privacyPage = fs.readFileSync(path.join(projectDir, "docs", "privacy.html"), "utf8");
+const imprintPage = fs.readFileSync(path.join(projectDir, "docs", "imprint.html"), "utf8");
+const familyScript = fs.readFileSync(path.join(projectDir, "docs", "family-pages.js"), "utf8");
 const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
 
 if (scripts.length === 0) throw new Error("No inline website script found");
@@ -77,6 +81,15 @@ if ((siteNav.match(/<a /g) || []).length !== 4 ||
     siteNav.includes("github-button") ||
     !html.includes('class="github-button" href="https://github.com/foxly-it/adguard-home-updater"')) {
     throw new Error("Top navigation does not match the Foxly MOTD structure");
+}
+
+if (!html.includes('href="docs.html"') || !html.includes('href="privacy.html"') ||
+    !html.includes('href="imprint.html"') ||
+    !docsPage.includes('rel="canonical" href="https://install.foxly.de/docs.html"') ||
+    !familyScript.includes("foxly-updater-language") ||
+    !imprintPage.includes("Digitale-Dienste-Gesetz") ||
+    !imprintPage.includes("not affiliated with")) {
+    throw new Error("Local documentation or legal pages are incomplete");
 }
 
 for (const token of ["width: min(1400px, calc(100% - 40px))", "@media (max-width: 820px)",
