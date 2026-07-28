@@ -877,6 +877,52 @@
             color: var(--text);
         }
 
+        .site-nav {
+            padding: 4px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: rgba(21, 29, 37, .78);
+        }
+
+        .site-nav a {
+            margin: 0;
+            padding: 7px 10px;
+            border-radius: 8px;
+        }
+
+        .site-nav a:hover {
+            background: var(--soft);
+        }
+
+        .github-button {
+            display: grid;
+            width: 46px;
+            height: 46px;
+            flex: 0 0 46px;
+            place-items: center;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: rgba(21, 29, 37, .78);
+            color: var(--muted);
+            text-decoration: none;
+            transition: border-color .18s ease, background .18s ease, color .18s ease, transform .18s ease;
+        }
+
+        .github-button:hover,
+        .github-button:focus-visible {
+            border-color: rgba(114, 196, 131, .5);
+            background: var(--soft);
+            color: var(--accent);
+            outline: none;
+            transform: translateY(-1px);
+        }
+
+        .github-button svg {
+            width: 21px;
+            height: 21px;
+            fill: currentColor;
+        }
+
         .language-switch {
             gap: 2px;
             margin-left: 2px;
@@ -1409,13 +1455,13 @@
                     <a href="#features" data-en="Features" data-de="Features">Features</a>
                     <a href="#project" data-en="Project" data-de="Projekt">Project</a>
                     <a href="#assistant" data-en="Assistant" data-de="Assistent">Assistant</a>
-                    <a href="#assistant" data-en="Install" data-de="Installation">Install</a>
-                    <a href="https://github.com/foxly-it/adguard-home-updater" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+                    <a href="https://github.com/foxly-it/adguard-home-updater#readme" target="_blank" rel="noopener noreferrer" data-en="Documentation" data-de="Docs">Documentation</a>
                     <div class="language-switch" aria-label="Language">
                         <button class="lang-button" id="btn-de" type="button" onclick="setLang('de')">DE</button>
                         <button class="lang-button active" id="btn-en" type="button" onclick="setLang('en')">EN</button>
                     </div>
                 </nav>
+                <a class="github-button" href="https://github.com/foxly-it/adguard-home-updater" target="_blank" rel="noopener noreferrer" aria-label="AdGuard Home Updater on GitHub"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .7a11.3 11.3 0 0 0-3.6 22c.6.1.8-.2.8-.5v-2c-3.3.7-4-1.4-4-1.4-.5-1.4-1.3-1.8-1.3-1.8-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.4 11.4 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.6.8.5A11.3 11.3 0 0 0 12 .7Z"/></svg></a>
             </div>
         </header>
 

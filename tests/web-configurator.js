@@ -27,7 +27,7 @@ const requiredTokens = [
     'id="advancedToggle"',
     'href="https://github.com/foxly-it/adguard-home-updater"',
     'class="lang-button"',
-    'data-en="Install" data-de="Installation"',
+    'data-en="Documentation" data-de="Docs"',
     'href="#project"',
     'class="terminal-shell"',
     'class="terminal-output" id="terminal"',
@@ -71,9 +71,11 @@ if (html.includes('scrollIntoView({behavior: "smooth", block: "start"})')) {
 }
 
 const siteNav = html.match(/<nav class="site-nav"[\s\S]*?<\/nav>/)?.[0] || "";
-if ((siteNav.match(/<a /g) || []).length !== 5 ||
+if ((siteNav.match(/<a /g) || []).length !== 4 ||
     !siteNav.includes('href="#features"') || !siteNav.includes('href="#project"') ||
-    !siteNav.includes('href="#assistant"') || siteNav.includes('class="github-link"')) {
+    !siteNav.includes('href="#assistant"') || !siteNav.includes('data-de="Docs"') ||
+    siteNav.includes("github-button") ||
+    !html.includes('class="github-button" href="https://github.com/foxly-it/adguard-home-updater"')) {
     throw new Error("Top navigation does not match the Foxly MOTD structure");
 }
 
