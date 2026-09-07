@@ -10,6 +10,8 @@ const docsPage = fs.readFileSync(path.join(projectDir, "docs", "docs.html"), "ut
 const privacyPage = fs.readFileSync(path.join(projectDir, "docs", "privacy.html"), "utf8");
 const imprintPage = fs.readFileSync(path.join(projectDir, "docs", "imprint.html"), "utf8");
 const familyScript = fs.readFileSync(path.join(projectDir, "docs", "family-pages.js"), "utf8");
+const familyCss = fs.readFileSync(path.join(projectDir, "docs", "family-pages.css"), "utf8");
+const cname = fs.readFileSync(path.join(projectDir, "docs", "CNAME"), "utf8").trim();
 const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
 
 if (scripts.length === 0) throw new Error("No inline website script found");
@@ -74,8 +76,8 @@ if (html.includes('scrollIntoView({behavior: "smooth", block: "start"})')) {
     throw new Error("Wizard navigation still uses the abrupt header anchor scroll");
 }
 
-const siteNav = html.match(/<nav class="site-nav"[\s\S]*?<\/nav>/)?.[0] || "";
-if ((siteNav.match(/<a /g) || []).length !== 4 ||
+const siteNav = html.match(/<nav class="links"[\s\S]*?<\/nav>/)?.[0] || "";
+if (!siteNav.includes('class="nav-home"') || !siteNav.includes('class="nav-dropdown"') ||
     !siteNav.includes('href="#features"') || !siteNav.includes('href="#project"') ||
     !siteNav.includes('href="#assistant"') || !siteNav.includes('data-de="Docs"') ||
     siteNav.includes("github-button") ||
@@ -85,16 +87,39 @@ if ((siteNav.match(/<a /g) || []).length !== 4 ||
 
 if (!html.includes('href="docs.html"') || !html.includes('href="privacy.html"') ||
     !html.includes('href="imprint.html"') ||
-    !docsPage.includes('rel="canonical" href="https://install.foxly.de/docs.html"') ||
+    cname !== "adguard.foxly.de" ||
+    !html.includes('rel="canonical" href="https://adguard.foxly.de/"') ||
+    !docsPage.includes('rel="canonical" href="https://adguard.foxly.de/docs.html"') ||
+    !privacyPage.includes("adguard.foxly.de") ||
     !familyScript.includes("foxly-updater-language") ||
     !imprintPage.includes("Digitale-Dienste-Gesetz") ||
     !imprintPage.includes("not affiliated with")) {
     throw new Error("Local documentation or legal pages are incomplete");
 }
 
-for (const token of ["width: min(1400px, calc(100% - 40px))", "@media (max-width: 820px)",
-    "@media (max-width: 560px)", ".lang-button.active"]) {
+for (const token of ["width: min(1400px, calc(100% - 40px))", "@media (max-width: 560px)",
+    ".nav-dropdown-menu", ".lang-button.active"]) {
     if (!html.includes(token)) throw new Error(`Missing shared topbar rule: ${token}`);
+}
+
+const homepageOrder = ["assistant", "features", "project"].map((id) => html.indexOf(`id="${id}"`));
+if (!homepageOrder.every((position, index) => position >= 0 && (index === 0 || position > homepageOrder[index - 1]))) {
+    throw new Error("Homepage does not place the installation assistant directly below the hero");
+}
+
+if (!docsPage.includes('<main id="content" class="manual">') ||
+    !docsPage.includes('class="docs-status"') || !docsPage.includes('class="actions"') ||
+    (docsPage.match(/class="eyebrow"/g) || []).length !== 8 ||
+    !docsPage.includes('class="manual-cards"') || !docsPage.includes('class="manual-callout') ||
+    !docsPage.includes('class="manual-table"') || !docsPage.includes('class="steps"') ||
+    !docsPage.includes('class="checklist"')) {
+    throw new Error("RootGuard-aligned documentation structure is incomplete");
+}
+
+if (!familyCss.includes('.content section{scroll-margin-top:20px;padding:58px 0;border-top:1px solid var(--border)') ||
+    !familyCss.includes('.nav-dropdown-menu{position:absolute') || !familyCss.includes('left:0') ||
+    !familyScript.includes("IntersectionObserver")) {
+    throw new Error("Documentation layout or mobile dropdown fix is missing");
 }
 
 if ((html.match(/class="activity-card"/g) || []).length !== 3) {
