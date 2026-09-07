@@ -6,7 +6,7 @@
 
 A security-focused update tool for supported AdGuard Home bare-metal installations.
 
-[English](#english-documentation) | [Deutsch](#deutsche-dokumentation) | [Installation website](https://install.foxly.de)
+[English](#english-documentation) | [Deutsch](#deutsche-dokumentation) | [Installation website](https://adguard.foxly.de)
 
 ## English documentation
 
@@ -32,13 +32,13 @@ Interactive update runs use colored `[INFO]`, `[OK]`, `[WARN]`, and `[ERROR]` la
 ### Installation
 
 ```bash
-curl -fsSL https://install.foxly.de/install.sh | sudo bash
+curl -fsSL https://adguard.foxly.de/install.sh | sudo bash
 ```
 
-The installer does not enable automatic updates by default. The [installation configurator](https://install.foxly.de) generates a command with all supported settings. Example for a weekly update:
+The installer does not enable automatic updates by default. The [installation configurator](https://adguard.foxly.de) generates a command with all supported settings. Example for a weekly update:
 
 ```bash
-curl -fsSL https://install.foxly.de/install.sh | sudo bash -s -- \
+curl -fsSL https://adguard.foxly.de/install.sh | sudo bash -s -- \
   --no-interactive --install-adguard no --timer enabled --schedule weekly --time 04:15 \
   --weekday Sat --random-delay 30m --health-domain example.org
 ```
@@ -93,7 +93,7 @@ Logs are written to `/var/log/adguard-update.log` and the systemd journal.
 ### Uninstallation
 
 ```bash
-curl -fsSL https://install.foxly.de/install.sh | sudo bash -s -- uninstall
+curl -fsSL https://adguard.foxly.de/install.sh | sudo bash -s -- uninstall
 ```
 
 Logs and AdGuard Home backups are deliberately preserved.
@@ -122,13 +122,13 @@ Interaktive Updates verwenden farbige `[INFO]`-, `[OK]`-, `[WARN]`- und `[ERROR]
 ### Installation
 
 ```bash
-curl -fsSL https://install.foxly.de/install.sh | sudo bash
+curl -fsSL https://adguard.foxly.de/install.sh | sudo bash
 ```
 
-Automatische Updates sind standardmäßig deaktiviert. Der [Installationskonfigurator](https://install.foxly.de) erzeugt einen Befehl mit allen unterstützten Einstellungen. Beispiel für ein wöchentliches Update:
+Automatische Updates sind standardmäßig deaktiviert. Der [Installationskonfigurator](https://adguard.foxly.de) erzeugt einen Befehl mit allen unterstützten Einstellungen. Beispiel für ein wöchentliches Update:
 
 ```bash
-curl -fsSL https://install.foxly.de/install.sh | sudo bash -s -- \
+curl -fsSL https://adguard.foxly.de/install.sh | sudo bash -s -- \
   --no-interactive --install-adguard no --timer enabled --schedule weekly --time 04:15 \
   --weekday Sat --random-delay 30m --health-domain example.org
 ```
@@ -183,7 +183,7 @@ Protokolle werden unter `/var/log/adguard-update.log` und im systemd-Journal ges
 ### Deinstallation
 
 ```bash
-curl -fsSL https://install.foxly.de/install.sh | sudo bash -s -- uninstall
+curl -fsSL https://adguard.foxly.de/install.sh | sudo bash -s -- uninstall
 ```
 
 Protokolle und AdGuard-Home-Backups bleiben bewusst erhalten.

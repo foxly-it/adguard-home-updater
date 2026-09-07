@@ -9,8 +9,8 @@
     <meta property="og:title" content="AdGuard Home Updater">
     <meta property="og:description" content="Safe and automated AdGuard Home updates for bare-metal installations.">
     <meta property="og:type" content="website">
-    <link rel="canonical" href="https://install.foxly.de/">
-    <meta property="og:image" content="https://install.foxly.de/assets/banner.webp">
+    <link rel="canonical" href="https://adguard.foxly.de/">
+    <meta property="og:image" content="https://adguard.foxly.de/assets/banner.webp">
 
     <style>
         :root {
@@ -860,40 +860,27 @@
             color: var(--accent);
         }
 
-        .topbar-actions,
-        .site-nav,
+        .links,
+        .nav-group,
         .language-switch {
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        .site-nav a {
-            margin-right: 12px;
-            color: var(--muted);
-            text-decoration: none;
-        }
-
-        .site-nav a:hover {
-            color: var(--text);
-        }
-
-        .site-nav {
-            padding: 4px;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            background: rgba(21, 29, 37, .78);
-        }
-
-        .site-nav a {
-            margin: 0;
-            padding: 7px 10px;
-            border-radius: 8px;
-        }
-
-        .site-nav a:hover {
-            background: var(--soft);
-        }
+        .links { gap: 4px; padding: 5px; border: 1px solid rgba(255,255,255,.07); border-radius: 14px; background: rgba(21,29,37,.74); box-shadow: 0 10px 35px rgba(0,0,0,.16); backdrop-filter: blur(14px); }
+        .links > a, .nav-dropdown > summary { display: flex; align-items: center; min-height: 38px; margin: 0; padding: 7px 11px; border-radius: 9px; color: var(--muted); text-decoration: none; font-size: .84rem; font-weight: 700; white-space: nowrap; transition: background .18s ease, color .18s ease; }
+        .links > a:hover, .links > a:focus-visible, .nav-dropdown > summary:hover, .nav-dropdown > summary:focus-visible { background: var(--soft); color: var(--text); outline: none; }
+        .nav-home { justify-content: center; width: 38px; height: 38px; flex: 0 0 auto; padding: 0 !important; }
+        .nav-home svg { width: 19px; height: 19px; }
+        .nav-dropdown { position: relative; }
+        .nav-dropdown > summary { cursor: pointer; list-style: none; }
+        .nav-dropdown > summary::-webkit-details-marker { display: none; }
+        .nav-dropdown > summary::after { width: 6px; height: 6px; margin: -3px 1px 0 8px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; content: ""; transform: rotate(45deg); transition: transform .18s ease; }
+        .nav-dropdown[open] > summary::after { margin-top: 3px; transform: rotate(225deg); }
+        .nav-dropdown-menu { position: absolute; z-index: 30; top: calc(100% + 9px); left: 0; display: grid; min-width: 210px; max-width: calc(100vw - 40px); overflow: hidden; padding: 6px; border: 1px solid var(--border); border-radius: 13px; background: rgba(15,22,29,.98); box-shadow: 0 24px 65px rgba(0,0,0,.42); }
+        .nav-dropdown-menu a { padding: 9px 11px; border-radius: 8px; color: var(--muted); text-decoration: none; font-size: .8rem; white-space: nowrap; }
+        .nav-dropdown-menu a:hover, .nav-dropdown-menu a:focus-visible { background: var(--soft); color: var(--text); outline: none; }
 
         .github-button {
             display: grid;
@@ -944,12 +931,6 @@
         .lang-button.active {
             background: var(--accent);
             color: #07110a;
-        }
-
-        @media (max-width: 820px) {
-            .site-nav a:not(:last-child) {
-                display: none;
-            }
         }
 
         .hero {
@@ -1426,16 +1407,14 @@
                 padding: 12px 0;
             }
 
-            .topbar-actions {
+            .nav-group {
                 width: 100%;
                 align-items: center;
                 justify-content: space-between;
                 flex-direction: row;
             }
 
-            .site-nav a {
-                margin-right: 0;
-            }
+            .github-button { width: 44px; height: 44px; flex-basis: 44px; }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -1451,12 +1430,19 @@
 
         <header class="topbar">
             <a class="brand" href="#top">🦊 <span>Foxly</span> AdGuard Updater</a>
-            <div class="topbar-actions">
-                <nav class="site-nav" aria-label="Main navigation">
-                    <a href="#features" data-en="Features" data-de="Features">Features</a>
-                    <a href="#project" data-en="Project" data-de="Projekt">Project</a>
-                    <a href="#assistant" data-en="Assistant" data-de="Assistent">Assistant</a>
-                    <a href="docs.html" data-en="Documentation" data-de="Docs">Documentation</a>
+            <div class="nav-group">
+                <nav class="links" aria-label="Main navigation">
+                    <a class="nav-home" href="#top" aria-label="Home" title="Home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9a1 1 0 0 0 1 1H9a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h2.5a1 1 0 0 0 1-1v-9"/></svg></a>
+                    <details class="nav-dropdown">
+                        <summary data-en="Menu" data-de="Menü">Menu</summary>
+                        <div class="nav-dropdown-menu">
+                            <a href="#assistant" data-en="Assistant" data-de="Assistent">Assistant</a>
+                            <a href="#features" data-en="Features" data-de="Features">Features</a>
+                            <a href="#project" data-en="Project" data-de="Projekt">Project</a>
+                            <a href="docs.html" data-en="Documentation" data-de="Docs">Documentation</a>
+                            <a href="https://rootguard.foxly.de/tools.html" data-en="Foxly tools" data-de="Foxly Tools">Foxly tools</a>
+                        </div>
+                    </details>
                     <div class="language-switch" aria-label="Language">
                         <button class="lang-button" id="btn-de" type="button" onclick="setLang('de')">DE</button>
                         <button class="lang-button active" id="btn-en" type="button" onclick="setLang('en')">EN</button>
@@ -1496,56 +1482,9 @@
             </div>
         </section>
 
-        <section class="project-section" id="project" aria-labelledby="project-title">
-        <div class="eyebrow" data-en="Open source · Live from GitHub" data-de="Open Source · Live von GitHub">Open source · Live from GitHub</div>
-        <h2 id="project-title" data-en="Built transparently. Easy to follow." data-de="Transparent entwickelt. Direkt nachvollziehbar.">Built transparently. Easy to follow.</h2>
-        <p class="project-lead" data-en="Version, downloads and recent project activity are loaded directly from the public GitHub repository." data-de="Version, Downloads und die jüngste Projektaktivität werden direkt aus dem öffentlichen GitHub-Repository geladen.">Version, downloads and recent project activity are loaded directly from the public GitHub repository.</p>
-        <div class="stats" aria-live="polite">
-            <div class="stat-card">
-                <div class="stat-icon">📦</div>
-                <div class="stat-title" data-en="Updater Version" data-de="Updater Version">Updater Version</div>
-                <div class="stat-value" id="updaterVersion">v2.0.1</div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-icon">⬇️</div>
-                <div class="stat-title" data-en="Release downloads" data-de="Release-Downloads">Release downloads</div>
-                <div class="stat-value" id="installCount">...</div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-icon">🏷️</div>
-                <div class="stat-title" data-en="Published releases" data-de="Veröffentlichte Releases">Published releases</div>
-                <div class="stat-value" id="releaseCount">...</div>
-            </div>
-        </div>
-
-        <div class="activity-grid">
-            <a class="activity-card" id="activityCommitLink" href="https://github.com/foxly-it/adguard-home-updater/commits/main" target="_blank" rel="noopener noreferrer">
-                <div class="activity-top"><span class="activity-kind" data-en="Latest commit" data-de="Letzter Commit">Latest commit</span><span class="activity-arrow" aria-hidden="true">↗</span></div>
-                <h3 class="activity-title" id="activityCommitTitle" data-en="Loading project activity …" data-de="Projektaktivität wird geladen …">Loading project activity …</h3>
-                <p class="activity-description" id="activityCommitDescription" data-en="Latest state on the main branch." data-de="Neuester Stand auf dem main-Branch.">Latest state on the main branch.</p>
-                <div class="activity-meta"><span id="activityCommitAuthor">GitHub</span><time id="activityCommitDate">–</time></div>
-            </a>
-            <a class="activity-card" id="activityPrLink" href="https://github.com/foxly-it/adguard-home-updater/pulls?q=is%3Apr+is%3Amerged" target="_blank" rel="noopener noreferrer">
-                <div class="activity-top"><span class="activity-kind" data-en="Latest pull request" data-de="Letzter Pull Request">Latest pull request</span><span class="activity-arrow" aria-hidden="true">↗</span></div>
-                <h3 class="activity-title" id="activityPrTitle" data-en="Loading pull requests …" data-de="Pull Requests werden geladen …">Loading pull requests …</h3>
-                <p class="activity-description" id="activityPrDescription" data-en="Most recently merged repository change." data-de="Zuletzt gemergte Änderung im Repository.">Most recently merged repository change.</p>
-                <div class="activity-meta"><span id="activityPrAuthor">GitHub</span><time id="activityPrDate">–</time></div>
-            </a>
-            <article class="activity-card">
-                <div class="activity-top"><span class="activity-kind" data-en="Release log" data-de="Release-Log">Release log</span><a class="activity-arrow release-main-link" id="activityReleaseLink" href="https://github.com/foxly-it/adguard-home-updater/releases/latest" target="_blank" rel="noopener noreferrer" aria-label="Open release log">↗</a></div>
-                <h3 class="activity-title"><a class="release-main-link" id="activityReleaseTitle" href="https://github.com/foxly-it/adguard-home-updater/releases/latest" target="_blank" rel="noopener noreferrer">v2.0.1</a></h3>
-                <p class="activity-description" id="activityReleaseDescription" data-en="Versioned downloads with SHA-256 verification." data-de="Versionierte Downloads mit SHA-256-Prüfung.">Versioned downloads with SHA-256 verification.</p>
-                <ul class="release-entries" id="activityReleaseEntries" hidden></ul>
-                <div class="activity-meta"><span id="activityReleaseAssets" data-en="Release assets" data-de="Release-Artefakte">Release assets</span><time id="activityReleaseDate">–</time></div>
-            </article>
-        </div>
-        <div class="live-line" id="projectLiveStatus" data-state="loading"><span class="live-dot" aria-hidden="true"></span><span id="projectLiveLabel" data-en="Loading live GitHub data …" data-de="GitHub-Livedaten werden geladen …">Loading live GitHub data …</span></div>
-        </section>
-
         <div class="card cta" id="assistant">
-            <h2 data-en="Install" data-de="Installation">Install</h2>
+            <div class="eyebrow" data-en="Your installation" data-de="Deine Installation">Your installation</div>
+            <h2 data-en="Configure. Review. Install." data-de="Konfigurieren. Prüfen. Installieren.">Configure. Review. Install.</h2>
 
             <p data-en="Answer one short step at a time. At the end, you can review every setting before copying the installation command."
                data-de="Beantworte nacheinander wenige verständliche Fragen. Am Ende kannst du jede Einstellung prüfen, bevor du den Installationsbefehl kopierst.">
@@ -1802,6 +1741,23 @@
                 </p>
             </div>
         </div>
+
+        <section class="project-section" id="project" aria-labelledby="project-title">
+            <div class="eyebrow" data-en="Open source · Live from GitHub" data-de="Open Source · Live von GitHub">Open source · Live from GitHub</div>
+            <h2 id="project-title" data-en="Built transparently. Easy to follow." data-de="Transparent entwickelt. Direkt nachvollziehbar.">Built transparently. Easy to follow.</h2>
+            <p class="project-lead" data-en="Version, downloads and recent project activity are loaded directly from the public GitHub repository." data-de="Version, Downloads und die jüngste Projektaktivität werden direkt aus dem öffentlichen GitHub-Repository geladen.">Version, downloads and recent project activity are loaded directly from the public GitHub repository.</p>
+            <div class="stats" aria-live="polite">
+                <div class="stat-card"><div class="stat-icon">📦</div><div class="stat-title" data-en="Updater Version" data-de="Updater-Version">Updater Version</div><div class="stat-value" id="updaterVersion">v2.0.1</div></div>
+                <div class="stat-card"><div class="stat-icon">⬇️</div><div class="stat-title" data-en="Release downloads" data-de="Release-Downloads">Release downloads</div><div class="stat-value" id="installCount">...</div></div>
+                <div class="stat-card"><div class="stat-icon">🏷️</div><div class="stat-title" data-en="Published releases" data-de="Veröffentlichte Releases">Published releases</div><div class="stat-value" id="releaseCount">...</div></div>
+            </div>
+            <div class="activity-grid">
+                <a class="activity-card" id="activityCommitLink" href="https://github.com/foxly-it/adguard-home-updater/commits/main" target="_blank" rel="noopener noreferrer"><div class="activity-top"><span class="activity-kind" data-en="Latest commit" data-de="Letzter Commit">Latest commit</span><span class="activity-arrow" aria-hidden="true">↗</span></div><h3 class="activity-title" id="activityCommitTitle" data-en="Loading project activity …" data-de="Projektaktivität wird geladen …">Loading project activity …</h3><p class="activity-description" id="activityCommitDescription" data-en="Latest state on the main branch." data-de="Neuester Stand auf dem main-Branch.">Latest state on the main branch.</p><div class="activity-meta"><span id="activityCommitAuthor">GitHub</span><time id="activityCommitDate">–</time></div></a>
+                <a class="activity-card" id="activityPrLink" href="https://github.com/foxly-it/adguard-home-updater/pulls?q=is%3Apr+is%3Amerged" target="_blank" rel="noopener noreferrer"><div class="activity-top"><span class="activity-kind" data-en="Latest pull request" data-de="Letzter Pull Request">Latest pull request</span><span class="activity-arrow" aria-hidden="true">↗</span></div><h3 class="activity-title" id="activityPrTitle" data-en="Loading pull requests …" data-de="Pull Requests werden geladen …">Loading pull requests …</h3><p class="activity-description" id="activityPrDescription" data-en="Most recently merged repository change." data-de="Zuletzt gemergte Änderung im Repository.">Most recently merged repository change.</p><div class="activity-meta"><span id="activityPrAuthor">GitHub</span><time id="activityPrDate">–</time></div></a>
+                <article class="activity-card"><div class="activity-top"><span class="activity-kind" data-en="Release log" data-de="Release-Log">Release log</span><a class="activity-arrow release-main-link" id="activityReleaseLink" href="https://github.com/foxly-it/adguard-home-updater/releases/latest" target="_blank" rel="noopener noreferrer" aria-label="Open release log">↗</a></div><h3 class="activity-title"><a class="release-main-link" id="activityReleaseTitle" href="https://github.com/foxly-it/adguard-home-updater/releases/latest" target="_blank" rel="noopener noreferrer">v2.0.1</a></h3><p class="activity-description" id="activityReleaseDescription" data-en="Versioned downloads with SHA-256 verification." data-de="Versionierte Downloads mit SHA-256-Prüfung.">Versioned downloads with SHA-256 verification.</p><ul class="release-entries" id="activityReleaseEntries" hidden></ul><div class="activity-meta"><span id="activityReleaseAssets" data-en="Release assets" data-de="Release-Artefakte">Release assets</span><time id="activityReleaseDate">–</time></div></article>
+            </div>
+            <div class="live-line" id="projectLiveStatus" data-state="loading"><span class="live-dot" aria-hidden="true"></span><span id="projectLiveLabel" data-en="Loading live GitHub data …" data-de="GitHub-Livedaten werden geladen …">Loading live GitHub data …</span></div>
+        </section>
 
         <footer class="footer">
             <div class="footer-main">
@@ -2111,7 +2067,7 @@
                 "--backup-retention", String(retention), "--health-retries", String(healthRetries),
                 "--health-timeout", String(healthTimeout), "--health-failure", healthFailure
             ];
-            cmd.textContent = "curl -fsSL https://install.foxly.de/install.sh | sudo bash -s -- " + args.join(" ");
+            cmd.textContent = "curl -fsSL https://adguard.foxly.de/install.sh | sudo bash -s -- " + args.join(" ");
 
             const summary = document.getElementById("configSummary");
             const notices = document.getElementById("configNotices");

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://install.foxly.de/sitemap.xml
+Sitemap: https://adguard.foxly.de/sitemap.xml

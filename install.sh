@@ -204,7 +204,7 @@ ensure_adguard_home() {
             if $INTERACTIVE && prompt_yes_no "Install the latest stable AdGuard Home release now? [y/N]: "; then
                 install_adguard_home
             else
-                fail "AdGuard Home is required. Re-run with --install-adguard yes or use https://install.foxly.de"
+                fail "AdGuard Home is required. Re-run with --install-adguard yes or use https://adguard.foxly.de"
                 return 1
             fi
             ;;
@@ -486,7 +486,7 @@ validate_settings
 [[ -z "$existing_version" ]] || printf 'Existing installation: %s\n' "$existing_version"
 if $MIGRATION_NEEDED; then
     printf 'NOTICE: This release introduces configurable persisted settings.\n'
-    printf 'Existing timer state was preserved. Review or regenerate your configuration at https://install.foxly.de.\n'
+    printf 'Existing timer state was preserved. Review or regenerate your configuration at https://adguard.foxly.de.\n'
 fi
 
 tag=$(curl --fail --silent --show-error --location --retry 3 "$GITHUB_API/repos/$REPO/releases/latest" | extract_tag)

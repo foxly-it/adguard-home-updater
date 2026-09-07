@@ -189,7 +189,7 @@ check_settings_schema() {
         installed_settings_version=$(awk -F= '$1 == "ADGUARD_UPDATER_SETTINGS_VERSION" {print $2; exit}' "$SETTINGS_FILE")
     fi
     if [[ "$installed_settings_version" != "$SETTINGS_VERSION" ]]; then
-        warn "New installer settings are available. Re-run the installer or create a command at https://install.foxly.de"
+        warn "New installer settings are available. Re-run the installer or create a command at https://adguard.foxly.de"
     fi
 }
 
