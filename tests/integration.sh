@@ -142,12 +142,40 @@ MOCK_CURRENT_VERSION=0.107.77 run_expect 0 "$TEST_ROOT/check-current.out" \
     bash "$PROJECT_DIR/adguard-update" --check
 assert_contains "$TEST_ROOT/check-current.out" "AdGuard Home is up to date"
 
+# A beta of the same version number is older than the stable release.
+MOCK_CURRENT_VERSION=1.0.0-b.2 MOCK_LATEST_VERSION=1.0.0 run_expect 10 "$TEST_ROOT/check-beta.out" \
+    bash "$PROJECT_DIR/adguard-update" --check
+assert_contains "$TEST_ROOT/check-beta.out" "Update available: 1.0.0-b.2 -> 1.0.0"
+
+# Never offer a downgrade.
+MOCK_CURRENT_VERSION=1.0.1 MOCK_LATEST_VERSION=1.0.0 run_expect 0 "$TEST_ROOT/check-newer.out" \
+    bash "$PROJECT_DIR/adguard-update" --check
+assert_contains "$TEST_ROOT/check-newer.out" "newer than the latest stable release 1.0.0"
+MOCK_CURRENT_VERSION=1.0.1-b.1 MOCK_LATEST_VERSION=1.0.0 run_expect 0 "$TEST_ROOT/check-newer-beta.out" \
+    bash "$PROJECT_DIR/adguard-update" --check
+assert_contains "$TEST_ROOT/check-newer-beta.out" "newer than the latest stable release 1.0.0"
+MOCK_CURRENT_VERSION=0.107.9 MOCK_LATEST_VERSION=0.107.10 run_expect 10 "$TEST_ROOT/check-numeric.out" \
+    bash "$PROJECT_DIR/adguard-update" --check
+assert_contains "$TEST_ROOT/check-numeric.out" "Update available: 0.107.9 -> 0.107.10"
+
 mkdir -p "$RELEASE_DIR/build/AdGuardHome"
 cat > "$RELEASE_DIR/build/AdGuardHome/AdGuardHome" << 'EOF'
 #!/usr/bin/env bash
 case "${1:-}" in
     --version) printf 'AdGuard Home, version v0.107.77\n' ;;
-    --check-config) exit 0 ;;
+    --check-config)
+        # Like AdGuard Home, migrate the checked file in place.
+        shift
+        while (($# > 0)); do
+            case "$1" in
+                -c)
+                    printf 'schema_version: 35\n' >> "$2"
+                    shift 2
+                    ;;
+                *) shift ;;
+            esac
+        done
+        ;;
     -s)
         printf 'adguard %s\n' "${2:-}" >> "$MOCK_CALL_LOG"
         case "${2:-}" in
@@ -165,11 +193,20 @@ tar -czf "$RELEASE_DIR/AdGuardHome_linux_amd64.tar.gz" -C "$RELEASE_DIR/build" A
 )
 
 before_hash=$(sha256sum "$INSTALL_DIR/AdGuardHome" | awk '{print $1}')
+config_hash=$(sha256sum "$INSTALL_DIR/AdGuardHome.yaml" | awk '{print $1}')
 run_expect 0 "$TEST_ROOT/dry-run.out" env \
     ADGUARD_UPDATE_PROGRESS=always ADGUARD_UPDATE_BANNER=always \
     bash "$PROJECT_DIR/adguard-update" --dry-run
 after_hash=$(sha256sum "$INSTALL_DIR/AdGuardHome" | awk '{print $1}')
 [[ "$before_hash" == "$after_hash" ]] || fail "Dry-run changed the AdGuard Home binary"
+[[ "$(sha256sum "$INSTALL_DIR/AdGuardHome.yaml" | awk '{print $1}')" == "$config_hash" ]] ||
+    fail "Dry-run changed the live configuration"
+assert_contains "$TEST_ROOT/dry-run.out" "Configuration check passed"
+
+run_expect 0 "$TEST_ROOT/dry-run-newer.out" env MOCK_CURRENT_VERSION=1.0.1 \
+    bash "$PROJECT_DIR/adguard-update" --dry-run --force
+assert_contains "$TEST_ROOT/dry-run-newer.out" "nothing to do"
+assert_not_contains "$TEST_ROOT/dry-run-newer.out" "Downloading"
 [[ ! -s "$CALL_LOG" ]] || fail "Dry-run called a service or DNS command"
 [[ ! -e "$TEST_ROOT/adguard-update.log" ]] || fail "Dry-run created a log file"
 assert_contains "$TEST_ROOT/dry-run.out" "no files or services were changed"
@@ -210,11 +247,19 @@ if ((EUID == 0)); then
     [[ "$(< "$SERVICE_STATE")" == active ]] || fail "Service was not active after update"
     find "$INSTALL_DIR/adguard-update-backups" -name AdGuardHome -type f | grep -q . || fail "Binary backup is missing"
     [[ "$("$INSTALL_DIR/AdGuardHome" --version)" == *v0.107.77 ]] || fail "New binary was not installed"
+    # The configuration check must neither migrate the live file nor the
+    # backup a rollback restores.
+    backup_config=$(find "$INSTALL_DIR/adguard-update-backups" -name AdGuardHome.yaml -type f | head -n 1)
+    [[ "$(sha256sum "$backup_config" | awk '{print $1}')" == "$config_hash" ]] ||
+        fail "The configuration backup is not the pre-update configuration"
+    [[ "$(sha256sum "$INSTALL_DIR/AdGuardHome.yaml" | awk '{print $1}')" == "$config_hash" ]] ||
+        fail "The update changed the live configuration before the new release started"
 
     run_expect 0 "$TEST_ROOT/list-backups.out" bash "$PROJECT_DIR/adguard-update" --list-backups
     assert_contains "$TEST_ROOT/list-backups.out" "adguard-update-backups"
     run_expect 0 "$TEST_ROOT/rollback.out" bash "$PROJECT_DIR/adguard-update" --rollback
     assert_contains "$TEST_ROOT/rollback.out" "Rollback completed"
+    assert_not_contains "$TEST_ROOT/rollback.out" "Update failed"
     [[ "$("$INSTALL_DIR/AdGuardHome" --version)" == *v0.107.76 ]] || fail "Rollback did not restore the old binary"
 
     cp "$PROJECT_DIR/adguard-update" "$RELEASE_DIR/adguard-update"

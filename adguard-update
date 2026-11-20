@@ -234,11 +234,31 @@ normalize_version() {
     printf '%s\n' "$value"
 }
 
+# Reads the version from AdGuard Home's --version output, including a
+# pre-release suffix such as "-b.2". Without it, v1.0.0-b.2 read as 1.0.0 and
+# counted as up to date with the stable v1.0.0 release.
+version_from_output() {
+    grep -oE 'v?[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?' | head -n 1 | sed 's/^v//'
+}
+
 installed_version() {
-    "$ADGUARD_BINARY" --version 2> /dev/null |
-        grep -oE 'v?[0-9]+\.[0-9]+\.[0-9]+' |
-        head -n 1 |
-        sed 's/^v//'
+    "$ADGUARD_BINARY" --version 2> /dev/null | version_from_output
+}
+
+# Succeeds when version $1 is newer than version $2. A pre-release sorts
+# before the release it leads up to (1.0.0-b.2 < 1.0.0), as in SemVer.
+version_newer() {
+    local a=$1 b=$2 a_core=${1%%-*} b_core=${2%%-*} highest
+    [[ "$a" != "$b" ]] || return 1
+    if [[ "$a_core" != "$b_core" ]]; then
+        highest=$(printf '%s\n%s\n' "$a_core" "$b_core" | sort -V | tail -n 1)
+        [[ "$highest" == "$a_core" ]]
+        return
+    fi
+    [[ "$a" != "$a_core" ]] || return 0
+    [[ "$b" != "$b_core" ]] || return 1
+    highest=$(printf '%s\n%s\n' "$a" "$b" | sort -V | tail -n 1)
+    [[ "$highest" == "$a" ]]
 }
 
 latest_adguard_tag() {
@@ -276,7 +296,7 @@ show_status() {
 }
 
 check_update() {
-    require_commands curl grep sed
+    require_commands curl grep sed sort tail
     require_installation
     local current latest_tag latest
     current=$(installed_version)
@@ -290,6 +310,10 @@ check_update() {
     info "Latest version: $latest"
     if [[ "$current" == "$latest" ]]; then
         success "AdGuard Home is up to date"
+        return 0
+    fi
+    if version_newer "$current" "$latest"; then
+        success "Installed version $current is newer than the latest stable release $latest; nothing to do"
         return 0
     fi
     info "Update available: $current -> $latest"
@@ -352,16 +376,26 @@ download_and_validate_release() {
         return 1
     fi
     chmod 0755 "$extracted_binary"
-    extracted_version=$("$extracted_binary" --version 2> /dev/null |
-        grep -oE 'v?[0-9]+\.[0-9]+\.[0-9]+' | head -n 1 | sed 's/^v//')
+    extracted_version=$("$extracted_binary" --version 2> /dev/null | version_from_output)
     latest=$(normalize_version "$tag")
     if [[ "$extracted_version" != "$latest" ]]; then
         fail "Archive version mismatch: expected $latest, got ${extracted_version:-unknown}"
         return 1
     fi
 
+    # Check a private copy in its own working directory, never the live file.
+    # AdGuard Home migrates an older configuration schema and writes the
+    # result back, even with --check-config. On the live file that upgraded
+    # it for the new release while the old one was still running, and before
+    # the backup was taken: AdGuard Home v1.0.0 writes schema 35, which
+    # v0.107.x refuses ("unknown current schema version 35"), so a restart of
+    # the old service, a dry run left in place, or a rollback all ended with
+    # AdGuard Home unable to start.
     info "Checking existing configuration with AdGuard Home $latest"
-    if ! "$extracted_binary" --check-config -c "$CONFIG_FILE" > "$TMP_DIR/config-check.log" 2>&1; then
+    mkdir -m 0700 "$TMP_DIR/config-check"
+    install -m 0600 "$CONFIG_FILE" "$TMP_DIR/config-check/AdGuardHome.yaml"
+    if ! "$extracted_binary" --check-config -c "$TMP_DIR/config-check/AdGuardHome.yaml" \
+        -w "$TMP_DIR/config-check" > "$TMP_DIR/config-check.log" 2>&1; then
         fail "The new release rejected the existing configuration"
         sed -n '1,40p' "$TMP_DIR/config-check.log" >&2
         return 1
@@ -384,7 +418,6 @@ service_health_check() {
 
 restore_backup() {
     set +e
-    fail "Update failed; restoring the previous binary"
     "$ADGUARD_BINARY" -s stop > /dev/null 2>&1 || systemctl stop "$SERVICE_NAME" > /dev/null 2>&1
     install -m 0755 "$ACTIVE_BACKUP_DIR/AdGuardHome" "$INSTALL_DIR/.adguard-update.rollback"
     mv -f "$INSTALL_DIR/.adguard-update.rollback" "$ADGUARD_BINARY"
@@ -393,6 +426,11 @@ restore_backup() {
     fi
     "$ADGUARD_BINARY" -s start > /dev/null 2>&1 || systemctl start "$SERVICE_NAME" > /dev/null 2>&1
     set -e
+}
+
+roll_back_update() {
+    fail "Update failed; restoring the previous binary"
+    restore_backup
 }
 
 perform_update() {
@@ -416,19 +454,19 @@ perform_update() {
 
     if ! install -m 0755 "$new_binary" "$INSTALL_DIR/.adguard-update.new" ||
         ! mv -f "$INSTALL_DIR/.adguard-update.new" "$ADGUARD_BINARY"; then
-        restore_backup
+        roll_back_update
         return 1
     fi
 
     info "Starting $SERVICE_NAME"
     if ! "$ADGUARD_BINARY" -s start; then
-        restore_backup
+        roll_back_update
         service_health_check || fail "Rollback completed, but the service is not healthy"
         return 1
     fi
     if ! service_health_check; then
         if [[ "$HEALTH_FAILURE" == rollback ]]; then
-            restore_backup
+            roll_back_update
             service_health_check || fail "Rollback completed, but the service is not healthy"
             return 1
         fi
@@ -574,7 +612,7 @@ if $CHECK_ONLY; then
     exit $?
 fi
 
-require_commands curl grep sed awk tar sha256sum mktemp install mv systemctl flock dig find sort date
+require_commands curl grep sed awk tar sha256sum mktemp install mv systemctl flock dig find sort tail date
 require_installation
 show_banner
 current=$(installed_version)
@@ -589,6 +627,13 @@ info "Latest version: $latest"
 
 if [[ "$current" == "$latest" ]] && ! $FORCE; then
     success "AdGuard Home is up to date"
+    exit 0
+fi
+
+# Never downgrade, not even with --force: AdGuard Home cannot read a
+# configuration a newer version has migrated.
+if version_newer "$current" "$latest"; then
+    success "Installed version $current is newer than the latest stable release $latest; nothing to do"
     exit 0
 fi
 
